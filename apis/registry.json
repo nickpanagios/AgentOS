@@ -1,0 +1,662 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "created": "2026-02-14",
+    "description": "Curated free public APIs for the multi-agent system. NO API KEYS STORED HERE — only no-auth endpoints or instructions for obtaining free keys.",
+    "security_notes": [
+      "All APIs listed here are either fully open (no auth) or have free tiers",
+      "Never store API keys in this file — use /home/executive-workspace/apis/keys.env",
+      "All endpoints use HTTPS where available",
+      "Rate limits noted per API — respect them",
+      "Validate all external data before trusting it"
+    ]
+  },
+  "categories": {
+    "finance_and_currency": {
+      "owner_team": "warren",
+      "apis": {
+        "frankfurter": {
+          "name": "Frankfurter",
+          "url": "https://api.frankfurter.app",
+          "docs": "https://www.frankfurter.app/docs",
+          "auth": "none",
+          "https": true,
+          "description": "Exchange rates, currency conversion, time series. ECB data.",
+          "endpoints": {
+            "latest": "GET /latest",
+            "convert": "GET /latest?from=USD&to=EUR&amount=100",
+            "historical": "GET /2024-01-01",
+            "time_series": "GET /2024-01-01..2024-12-31?from=USD&to=EUR",
+            "currencies": "GET /currencies"
+          },
+          "rate_limit": "none",
+          "example": "curl -s https://api.frankfurter.app/latest?from=USD"
+        },
+        "exchangerate_host": {
+          "name": "Exchangerate.host",
+          "url": "https://api.exchangerate.host",
+          "docs": "https://exchangerate.host",
+          "auth": "none",
+          "https": true,
+          "description": "Foreign exchange rates & crypto rates. 200+ currencies.",
+          "endpoints": {
+            "latest": "GET /latest?base=USD",
+            "convert": "GET /convert?from=USD&to=EUR&amount=100",
+            "historical": "GET /2024-01-01",
+            "symbols": "GET /symbols",
+            "time_series": "GET /timeseries?start_date=2024-01-01&end_date=2024-01-31"
+          },
+          "rate_limit": "none"
+        },
+        "currency_api": {
+          "name": "Currency-API (fawazahmed0)",
+          "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1",
+          "docs": "https://github.com/fawazahmed0/currency-api",
+          "auth": "none",
+          "https": true,
+          "description": "150+ currencies, no rate limits, daily updates via CDN.",
+          "endpoints": {
+            "latest_all": "GET /currencies.json",
+            "usd_rates": "GET /currencies/usd.json"
+          },
+          "rate_limit": "none (CDN-backed)"
+        },
+        "vatcomply": {
+          "name": "VATComply",
+          "url": "https://api.vatcomply.com",
+          "docs": "https://www.vatcomply.com/documentation",
+          "auth": "none",
+          "https": true,
+          "description": "Exchange rates, geolocation, VAT validation (EU).",
+          "endpoints": {
+            "rates": "GET /rates?base=USD",
+            "currencies": "GET /currencies",
+            "geolocate": "GET /geolocate"
+          },
+          "rate_limit": "none"
+        },
+        "coincap": {
+          "name": "CoinCap",
+          "url": "https://api.coincap.io/v2",
+          "docs": "https://docs.coincap.io/",
+          "auth": "none",
+          "https": true,
+          "description": "Real-time cryptocurrency prices, market data, exchanges.",
+          "endpoints": {
+            "assets": "GET /assets",
+            "asset_by_id": "GET /assets/bitcoin",
+            "asset_history": "GET /assets/bitcoin/history?interval=d1",
+            "rates": "GET /rates",
+            "exchanges": "GET /exchanges",
+            "markets": "GET /markets"
+          },
+          "rate_limit": "200 req/min (no key), 500 req/min (free key)"
+        },
+        "coingecko": {
+          "name": "CoinGecko",
+          "url": "https://api.coingecko.com/api/v3",
+          "docs": "https://www.coingecko.com/en/api/documentation",
+          "auth": "none",
+          "https": true,
+          "description": "Comprehensive crypto data — prices, market cap, volume, trending.",
+          "endpoints": {
+            "ping": "GET /ping",
+            "coins_list": "GET /coins/list",
+            "coin_data": "GET /coins/bitcoin",
+            "simple_price": "GET /simple/price?ids=bitcoin,ethereum&vs_currencies=usd",
+            "trending": "GET /search/trending",
+            "global": "GET /global"
+          },
+          "rate_limit": "10-50 req/min"
+        },
+        "coinpaprika": {
+          "name": "Coinpaprika",
+          "url": "https://api.coinpaprika.com/v1",
+          "docs": "https://api.coinpaprika.com",
+          "auth": "none",
+          "https": true,
+          "description": "Crypto prices, volume, market cap, exchanges.",
+          "rate_limit": "10 req/sec"
+        },
+        "coinlore": {
+          "name": "Coinlore",
+          "url": "https://api.coinlore.net/api",
+          "docs": "https://www.coinlore.com/cryptocurrency-data-api",
+          "auth": "none",
+          "https": true,
+          "description": "Crypto prices, global data, 10K+ coins.",
+          "endpoints": {
+            "global": "GET /global/",
+            "tickers": "GET /tickers/",
+            "ticker_by_id": "GET /ticker/?id=90"
+          }
+        }
+      }
+    },
+    "development_and_infrastructure": {
+      "owner_team": "tesla",
+      "apis": {
+        "github_public": {
+          "name": "GitHub Public API",
+          "url": "https://api.github.com",
+          "docs": "https://docs.github.com/en/rest",
+          "auth": "none (rate-limited) or apiKey (higher limits)",
+          "https": true,
+          "description": "Repository data, user profiles, gists, search. 60 req/hr unauthenticated.",
+          "endpoints": {
+            "search_repos": "GET /search/repositories?q=language:python+stars:>1000",
+            "user": "GET /users/{username}",
+            "repo": "GET /repos/{owner}/{repo}",
+            "events": "GET /events"
+          },
+          "rate_limit": "60 req/hr (no auth), 5000 req/hr (with token)",
+          "free_key_instructions": "Generate a personal access token at https://github.com/settings/tokens (free)"
+        },
+        "httpbin": {
+          "name": "httpbin",
+          "url": "https://httpbin.org",
+          "auth": "none",
+          "https": true,
+          "description": "HTTP request/response testing. Headers, IP, methods, redirects.",
+          "endpoints": {
+            "ip": "GET /ip",
+            "headers": "GET /headers",
+            "user_agent": "GET /user-agent",
+            "get": "GET /get",
+            "post": "POST /post",
+            "delay": "GET /delay/3"
+          }
+        },
+        "icanhazip": {
+          "name": "icanhazip",
+          "url": "https://icanhazip.com",
+          "auth": "none",
+          "https": true,
+          "description": "Returns your public IP address as plain text.",
+          "example": "curl -s https://icanhazip.com"
+        },
+        "ipapi": {
+          "name": "ip-api.com",
+          "url": "http://ip-api.com/json",
+          "docs": "https://ip-api.com/docs",
+          "auth": "none",
+          "https": false,
+          "description": "IP geolocation — country, region, city, ISP, lat/long.",
+          "endpoints": {
+            "lookup": "GET /json/{ip}",
+            "self": "GET /json/",
+            "batch": "POST /batch (up to 100 IPs)"
+          },
+          "rate_limit": "45 req/min",
+          "note": "Free tier is HTTP only. HTTPS requires paid plan."
+        },
+        "postman_echo": {
+          "name": "Postman Echo",
+          "url": "https://postman-echo.com",
+          "auth": "none",
+          "https": true,
+          "description": "Echo back request parameters, headers, body. Testing tool."
+        },
+        "cdnjs": {
+          "name": "CDNJS",
+          "url": "https://api.cdnjs.com/libraries",
+          "auth": "none",
+          "https": true,
+          "description": "Search JavaScript/CSS library metadata, versions, files."
+        },
+        "host_t": {
+          "name": "host-t.com",
+          "url": "https://host-t.com",
+          "auth": "none",
+          "https": true,
+          "description": "DNS query via HTTP GET. A, AAAA, MX, TXT records."
+        },
+        "urlhaus": {
+          "name": "URLhaus",
+          "url": "https://urlhaus-api.abuse.ch/v1",
+          "auth": "none",
+          "https": true,
+          "description": "Malware URL database. Query URLs, payloads, tags.",
+          "endpoints": {
+            "recent_urls": "POST /urls/recent/",
+            "url_lookup": "POST /url/ (url parameter)",
+            "host_lookup": "POST /host/ (host parameter)"
+          }
+        },
+        "bored_api": {
+          "name": "Bored API",
+          "url": "https://www.boredapi.com/api/activity",
+          "auth": "none",
+          "https": true,
+          "description": "Random activity suggestions. Good for testing."
+        }
+      }
+    },
+    "data_and_reference": {
+      "owner_team": "all",
+      "apis": {
+        "restcountries": {
+          "name": "REST Countries",
+          "url": "https://restcountries.com/v3.1",
+          "docs": "https://restcountries.com",
+          "auth": "none",
+          "https": true,
+          "description": "Country data — population, languages, currencies, borders, flags.",
+          "endpoints": {
+            "all": "GET /all",
+            "by_name": "GET /name/{name}",
+            "by_code": "GET /alpha/{code}",
+            "by_currency": "GET /currency/{currency}",
+            "by_language": "GET /lang/{language}",
+            "by_region": "GET /region/{region}"
+          }
+        },
+        "open_library": {
+          "name": "Open Library",
+          "url": "https://openlibrary.org",
+          "docs": "https://openlibrary.org/developers/api",
+          "auth": "none",
+          "https": true,
+          "description": "Books, authors, covers, search. Over 20M records.",
+          "endpoints": {
+            "search": "GET /search.json?q=machine+learning",
+            "book_by_isbn": "GET /isbn/9780140449136.json",
+            "author": "GET /authors/OL26320A.json",
+            "covers": "https://covers.openlibrary.org/b/isbn/9780140449136-M.jpg"
+          }
+        },
+        "wikipedia": {
+          "name": "Wikipedia API",
+          "url": "https://en.wikipedia.org/w/api.php",
+          "auth": "none",
+          "https": true,
+          "description": "Search, page content, summaries, random articles.",
+          "endpoints": {
+            "search": "GET ?action=query&list=search&srsearch=AI&format=json",
+            "summary": "https://en.wikipedia.org/api/rest_v1/page/summary/{title}",
+            "random": "https://en.wikipedia.org/api/rest_v1/page/random/summary"
+          }
+        },
+        "genderize": {
+          "name": "Genderize.io",
+          "url": "https://api.genderize.io",
+          "auth": "none",
+          "https": true,
+          "description": "Predict gender from first name.",
+          "rate_limit": "1000 req/day"
+        },
+        "agify": {
+          "name": "Agify.io",
+          "url": "https://api.agify.io",
+          "auth": "none",
+          "https": true,
+          "description": "Predict age from first name.",
+          "rate_limit": "1000 req/day"
+        },
+        "nationalize": {
+          "name": "Nationalize.io",
+          "url": "https://api.nationalize.io",
+          "auth": "none",
+          "https": true,
+          "description": "Predict nationality from first name.",
+          "rate_limit": "1000 req/day"
+        },
+        "datamuse": {
+          "name": "Datamuse",
+          "url": "https://api.datamuse.com",
+          "docs": "https://www.datamuse.com/api/",
+          "auth": "none",
+          "https": true,
+          "description": "Word-finding API. Rhymes, synonyms, related words, autocompletion.",
+          "endpoints": {
+            "related": "GET /words?rel_syn=happy",
+            "rhymes": "GET /words?rel_rhy=time",
+            "autocomplete": "GET /sug?s=hap"
+          },
+          "rate_limit": "100K req/day"
+        },
+        "dictionaryapi": {
+          "name": "Free Dictionary API",
+          "url": "https://api.dictionaryapi.dev/api/v2/entries/en",
+          "auth": "none",
+          "https": true,
+          "description": "Word definitions, phonetics, examples, synonyms.",
+          "example": "curl -s https://api.dictionaryapi.dev/api/v2/entries/en/engineer"
+        }
+      }
+    },
+    "news_and_media": {
+      "owner_team": "steve",
+      "apis": {
+        "hacker_news": {
+          "name": "Hacker News",
+          "url": "https://hacker-news.firebaseio.com/v0",
+          "docs": "https://github.com/HackerNews/API",
+          "auth": "none",
+          "https": true,
+          "description": "Tech news, stories, comments, user profiles.",
+          "endpoints": {
+            "top_stories": "GET /topstories.json",
+            "new_stories": "GET /newstories.json",
+            "best_stories": "GET /beststories.json",
+            "story_item": "GET /item/{id}.json",
+            "user": "GET /user/{id}.json"
+          }
+        },
+        "reddit": {
+          "name": "Reddit (public)",
+          "url": "https://www.reddit.com",
+          "auth": "none",
+          "https": true,
+          "description": "Subreddit posts, comments, search. Append .json to any URL.",
+          "endpoints": {
+            "subreddit": "GET /r/{subreddit}.json",
+            "search": "GET /search.json?q=query",
+            "trending": "GET /r/popular.json"
+          },
+          "rate_limit": "~60 req/min"
+        },
+        "dev_to": {
+          "name": "DEV.to",
+          "url": "https://dev.to/api",
+          "docs": "https://developers.forem.com/api",
+          "auth": "none",
+          "https": true,
+          "description": "Developer community articles, tags, users.",
+          "endpoints": {
+            "articles": "GET /articles?per_page=10",
+            "article_by_id": "GET /articles/{id}",
+            "tags": "GET /tags"
+          }
+        },
+        "quotable": {
+          "name": "Quotable",
+          "url": "https://api.quotable.io",
+          "auth": "none",
+          "https": true,
+          "description": "Random quotes, search by author/tag.",
+          "endpoints": {
+            "random": "GET /random",
+            "quotes": "GET /quotes?tags=technology",
+            "authors": "GET /authors"
+          }
+        }
+      }
+    },
+    "geocoding_and_maps": {
+      "owner_team": "all",
+      "apis": {
+        "nominatim": {
+          "name": "Nominatim (OpenStreetMap)",
+          "url": "https://nominatim.openstreetmap.org",
+          "docs": "https://nominatim.org/release-docs/latest/api/Overview/",
+          "auth": "none",
+          "https": true,
+          "description": "Geocoding and reverse geocoding. Address lookup.",
+          "endpoints": {
+            "search": "GET /search?q=New+York&format=json",
+            "reverse": "GET /reverse?lat=40.7128&lon=-74.0060&format=json"
+          },
+          "rate_limit": "1 req/sec",
+          "note": "Must include User-Agent header. No bulk geocoding."
+        },
+        "zippopotam": {
+          "name": "Zippopotam",
+          "url": "https://api.zippopotam.us",
+          "auth": "none",
+          "https": true,
+          "description": "Postal/ZIP code lookup for 60+ countries.",
+          "example": "curl -s https://api.zippopotam.us/us/10001"
+        }
+      }
+    },
+    "weather_and_environment": {
+      "owner_team": "all",
+      "apis": {
+        "open_meteo": {
+          "name": "Open-Meteo",
+          "url": "https://api.open-meteo.com/v1",
+          "docs": "https://open-meteo.com/en/docs",
+          "auth": "none",
+          "https": true,
+          "description": "Weather forecasts, historical data, air quality. No API key needed.",
+          "endpoints": {
+            "forecast": "GET /forecast?latitude=40.71&longitude=-74.01&current_weather=true",
+            "hourly": "GET /forecast?latitude=40.71&longitude=-74.01&hourly=temperature_2m",
+            "air_quality": "GET https://air-quality-api.open-meteo.com/v1/air-quality?latitude=40.71&longitude=-74.01&hourly=pm10,pm2_5"
+          },
+          "rate_limit": "10K req/day"
+        },
+        "wttr_in": {
+          "name": "wttr.in",
+          "url": "https://wttr.in",
+          "auth": "none",
+          "https": true,
+          "description": "Weather in terminal or JSON. Supports locations worldwide.",
+          "endpoints": {
+            "text": "GET /{city}",
+            "json": "GET /{city}?format=j1",
+            "one_liner": "GET /{city}?format=%C+%t+%h+%w"
+          }
+        },
+        "sunrise_sunset": {
+          "name": "Sunrise-Sunset",
+          "url": "https://api.sunrise-sunset.org",
+          "auth": "none",
+          "https": true,
+          "description": "Sunrise/sunset times for any coordinate.",
+          "example": "curl -s 'https://api.sunrise-sunset.org/json?lat=40.71&lng=-74.01'"
+        }
+      }
+    },
+    "legal_and_government": {
+      "owner_team": "tony",
+      "apis": {
+        "usa_spending": {
+          "name": "USAspending",
+          "url": "https://api.usaspending.gov/api/v2",
+          "docs": "https://api.usaspending.gov/docs/endpoints",
+          "auth": "none",
+          "https": true,
+          "description": "US federal spending data, contracts, awards, agencies."
+        },
+        "federal_register": {
+          "name": "Federal Register",
+          "url": "https://www.federalregister.gov/api/v1",
+          "docs": "https://www.federalregister.gov/developers/api/v1",
+          "auth": "none",
+          "https": true,
+          "description": "US Federal Register documents, regulations, presidential actions.",
+          "endpoints": {
+            "documents": "GET /documents.json?conditions[term]=technology",
+            "agencies": "GET /agencies.json"
+          }
+        },
+        "courtlistener": {
+          "name": "CourtListener (Free Law Project)",
+          "url": "https://www.courtlistener.com/api/rest/v3",
+          "docs": "https://www.courtlistener.com/api/rest-info/",
+          "auth": "none",
+          "https": true,
+          "description": "US court opinions, dockets, judges, oral arguments.",
+          "endpoints": {
+            "search": "GET /search/?q=patent&type=o",
+            "opinions": "GET /opinions/"
+          }
+        },
+        "nager_holidays": {
+          "name": "Nager.Date Public Holidays",
+          "url": "https://date.nager.at/api/v3",
+          "auth": "none",
+          "https": true,
+          "description": "Public holidays for 100+ countries. Useful for compliance calendars.",
+          "endpoints": {
+            "holidays": "GET /PublicHolidays/2026/US",
+            "countries": "GET /AvailableCountries"
+          }
+        },
+        "open_sanctions": {
+          "name": "OpenSanctions (partial)",
+          "url": "https://api.opensanctions.org",
+          "docs": "https://www.opensanctions.org/docs/api/",
+          "auth": "none",
+          "https": true,
+          "description": "Global sanctions and PEP data for compliance screening."
+        }
+      }
+    },
+    "science_and_engineering": {
+      "owner_team": "tesla",
+      "apis": {
+        "nasa": {
+          "name": "NASA Open APIs",
+          "url": "https://api.nasa.gov",
+          "docs": "https://api.nasa.gov",
+          "auth": "apiKey (DEMO_KEY works)",
+          "https": true,
+          "description": "Astronomy photo of day, Mars rover photos, asteroids, Earth imagery.",
+          "endpoints": {
+            "apod": "GET /planetary/apod?api_key=DEMO_KEY",
+            "neo": "GET /neo/rest/v1/feed?api_key=DEMO_KEY",
+            "mars_photos": "GET /mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=DEMO_KEY"
+          },
+          "rate_limit": "30 req/hr (DEMO_KEY), 1000 req/hr (free key)",
+          "free_key_instructions": "Get free key at https://api.nasa.gov/#signUp (instant, no CC)"
+        },
+        "arxiv": {
+          "name": "arXiv",
+          "url": "http://export.arxiv.org/api/query",
+          "docs": "https://arxiv.org/help/api",
+          "auth": "none",
+          "https": false,
+          "description": "Search academic papers in physics, CS, math, etc.",
+          "example": "curl 'http://export.arxiv.org/api/query?search_query=all:machine+learning&max_results=5'"
+        },
+        "crossref": {
+          "name": "Crossref",
+          "url": "https://api.crossref.org",
+          "auth": "none",
+          "https": true,
+          "description": "Academic metadata — DOIs, journals, articles, citations.",
+          "endpoints": {
+            "works": "GET /works?query=artificial+intelligence&rows=5",
+            "doi": "GET /works/{doi}"
+          },
+          "rate_limit": "50 req/sec (polite pool with mailto header)"
+        },
+        "pubchem": {
+          "name": "PubChem",
+          "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug",
+          "auth": "none",
+          "https": true,
+          "description": "Chemical compound data, structures, properties."
+        },
+        "usgs_earthquake": {
+          "name": "USGS Earthquake",
+          "url": "https://earthquake.usgs.gov/fdsnws/event/1",
+          "auth": "none",
+          "https": true,
+          "description": "Real-time earthquake data worldwide.",
+          "example": "curl -s 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=5'"
+        }
+      }
+    },
+    "business_intelligence": {
+      "owner_team": "warren",
+      "apis": {
+        "world_bank": {
+          "name": "World Bank",
+          "url": "https://api.worldbank.org/v2",
+          "docs": "https://datahelpdesk.worldbank.org/knowledgebase/articles/889392",
+          "auth": "none",
+          "https": true,
+          "description": "Global development indicators — GDP, population, poverty, trade.",
+          "endpoints": {
+            "country": "GET /country/US?format=json",
+            "indicator": "GET /country/US/indicator/NY.GDP.MKTP.CD?format=json",
+            "all_countries": "GET /country?format=json"
+          }
+        },
+        "domainsdb": {
+          "name": "DomainsDB",
+          "url": "https://api.domainsdb.info/v1",
+          "auth": "none",
+          "https": true,
+          "description": "Search registered domains containing keywords.",
+          "example": "curl -s 'https://api.domainsdb.info/v1/domains/search?domain=startup'"
+        },
+        "clearbit_logo": {
+          "name": "Clearbit Logo API",
+          "url": "https://logo.clearbit.com",
+          "auth": "none",
+          "https": true,
+          "description": "Get company logos by domain.",
+          "example": "https://logo.clearbit.com/google.com"
+        }
+      }
+    },
+    "utilities": {
+      "owner_team": "all",
+      "apis": {
+        "qrcode": {
+          "name": "QR Code Generator",
+          "url": "https://api.qrserver.com/v1/create-qr-code",
+          "auth": "none",
+          "https": true,
+          "description": "Generate QR codes as PNG images.",
+          "example": "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Hello"
+        },
+        "placeholder_images": {
+          "name": "Placeholder.com",
+          "url": "https://via.placeholder.com",
+          "auth": "none",
+          "https": true,
+          "description": "Placeholder images for design/development.",
+          "example": "https://via.placeholder.com/300x200/3b82f6/ffffff?text=AgentOS"
+        },
+        "json_placeholder": {
+          "name": "JSONPlaceholder",
+          "url": "https://jsonplaceholder.typicode.com",
+          "auth": "none",
+          "https": true,
+          "description": "Fake REST API for testing and prototyping.",
+          "endpoints": {
+            "posts": "GET /posts",
+            "users": "GET /users",
+            "comments": "GET /comments"
+          }
+        },
+        "uuid_generator": {
+          "name": "UUID Tools",
+          "url": "https://www.uuidtools.com/api/generate/v4",
+          "auth": "none",
+          "https": true,
+          "description": "Generate UUIDs via API."
+        },
+        "pantry": {
+          "name": "Pantry",
+          "url": "https://getpantry.cloud/apiv1/pantry",
+          "docs": "https://getpantry.cloud/",
+          "auth": "none",
+          "https": true,
+          "description": "Free JSON storage for small projects. Create baskets to store data."
+        },
+        "file_io": {
+          "name": "File.io",
+          "url": "https://file.io",
+          "auth": "none",
+          "https": true,
+          "description": "Ephemeral file sharing. Files auto-delete after download.",
+          "example": "curl -F 'file=@test.txt' https://file.io"
+        }
+      }
+    }
+  },
+  "team_access_map": {
+    "jarvis": ["all"],
+    "tesla": ["development_and_infrastructure", "science_and_engineering", "data_and_reference", "utilities"],
+    "warren": ["finance_and_currency", "business_intelligence", "data_and_reference", "utilities"],
+    "steve": ["news_and_media", "data_and_reference", "geocoding_and_maps", "utilities"],
+    "tony": ["legal_and_government", "data_and_reference", "utilities"]
+  }
+}

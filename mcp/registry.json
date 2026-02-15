@@ -1,0 +1,248 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "created": "2026-02-14",
+    "description": "Curated MCP servers for the multi-agent system. All free, open-source, no API keys required unless noted.",
+    "security_notes": [
+      "All MCP servers run as stdio subprocesses — isolated per invocation",
+      "Filesystem server has explicit allowed-paths — never grant /",
+      "Git server operates on repositories you specify — no remote push without explicit config",
+      "Fetch server respects robots.txt by default",
+      "No MCP server here has network listen ports unless explicitly started as SSE"
+    ],
+    "architecture": "MCP servers communicate via JSON-RPC over stdio. Send initialize → tools/list → tools/call"
+  },
+  "installed": {
+    "fetch": {
+      "name": "MCP Fetch",
+      "source": "official",
+      "package": "mcp-server-fetch",
+      "command": "python3 -m mcp_server_fetch",
+      "description": "Fetch any URL and convert to markdown/text for LLM consumption. Respects robots.txt.",
+      "tools": ["fetch"],
+      "auth": "none",
+      "install_method": "pip",
+      "team_relevance": ["all"],
+      "use_cases": ["Web research", "Page content extraction", "API response fetching", "Documentation lookup"]
+    },
+    "git": {
+      "name": "MCP Git",
+      "source": "official",
+      "package": "mcp-server-git",
+      "command": "python3 -m mcp_server_git",
+      "description": "Full git operations — status, diff, commit, branch, log, show. Works on any local repo.",
+      "tools": ["git_status", "git_diff_unstaged", "git_diff_staged", "git_diff", "git_commit", "git_add", "git_reset", "git_log", "git_create_branch", "git_checkout", "git_show", "git_branch"],
+      "auth": "none",
+      "install_method": "pip",
+      "team_relevance": ["tesla", "jarvis"],
+      "use_cases": ["Version control", "Code review", "Branch management", "Commit history analysis"]
+    },
+    "filesystem": {
+      "name": "MCP Filesystem",
+      "source": "community",
+      "package": "mcp-server-filesystem",
+      "command": "npx -y mcp-server-filesystem",
+      "args_note": "Append allowed directories as arguments: npx -y mcp-server-filesystem /path1 /path2",
+      "description": "Secure file operations — read, write, move, search, directory listing. Sandboxed to specified paths.",
+      "tools": ["read_file", "write_file", "list_directory", "create_directory", "move_file", "search_files", "get_file_info", "read_multiple_files"],
+      "auth": "none",
+      "install_method": "npm",
+      "team_relevance": ["all"],
+      "use_cases": ["File management", "Code editing", "Directory organization", "Batch file operations"],
+      "security": "Only allows access to explicitly listed directories"
+    }
+  },
+  "available_free": {
+    "reference_servers": {
+      "memory": {
+        "name": "MCP Memory",
+        "source": "official",
+        "repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+        "description": "Knowledge graph-based persistent memory system. Stores entities, relations, observations.",
+        "install": "pip install mcp-server-memory",
+        "command": "python3 -m mcp_server_memory",
+        "auth": "none",
+        "team_relevance": ["all"],
+        "use_cases": ["Persistent knowledge storage", "Entity relationship tracking", "Long-term context"]
+      },
+      "sequential_thinking": {
+        "name": "MCP Sequential Thinking",
+        "source": "official",
+        "repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+        "description": "Dynamic problem-solving through structured thought sequences. Chain-of-thought reasoning tool.",
+        "install": "pip install mcp-server-sequential-thinking",
+        "command": "python3 -m mcp_server_sequentialthinking",
+        "auth": "none",
+        "team_relevance": ["all"],
+        "use_cases": ["Complex problem decomposition", "Multi-step reasoning", "Decision analysis"]
+      },
+      "time": {
+        "name": "MCP Time",
+        "source": "official",
+        "repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
+        "description": "Time and timezone conversion, current time queries.",
+        "install": "pip install mcp-server-time",
+        "command": "python3 -m mcp_server_time",
+        "auth": "none",
+        "team_relevance": ["all"]
+      },
+      "everything": {
+        "name": "MCP Everything",
+        "source": "official",
+        "repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+        "description": "Reference/test server demonstrating all MCP capabilities — prompts, resources, tools.",
+        "install": "pip install mcp-server-everything",
+        "auth": "none",
+        "team_relevance": ["tesla"]
+      }
+    },
+    "development": {
+      "playwright": {
+        "name": "Playwright MCP",
+        "source": "microsoft",
+        "repo": "https://github.com/microsoft/playwright-mcp",
+        "description": "Official Microsoft Playwright MCP server. Browser automation via structured accessibility snapshots.",
+        "install": "npm install -g @anthropic-ai/mcp-server-playwright || npx @anthropic-ai/mcp-server-playwright",
+        "auth": "none",
+        "team_relevance": ["tesla", "steve"],
+        "use_cases": ["Browser testing", "Web scraping", "UI automation", "Screenshot capture"]
+      },
+      "sqlite": {
+        "name": "SQLite MCP",
+        "source": "official-archived",
+        "repo": "https://github.com/modelcontextprotocol/servers-archived/tree/main/src/sqlite",
+        "description": "Database interaction — query, schema inspection, business intelligence on SQLite databases.",
+        "install": "pip install mcp-server-sqlite",
+        "auth": "none",
+        "team_relevance": ["tesla", "warren"],
+        "use_cases": ["Database queries", "Schema analysis", "Data exploration", "BI reporting"]
+      },
+      "postgres": {
+        "name": "PostgreSQL MCP",
+        "source": "official-archived",
+        "repo": "https://github.com/modelcontextprotocol/servers-archived/tree/main/src/postgres",
+        "description": "Read-only database access with schema inspection for PostgreSQL.",
+        "install": "pip install mcp-server-postgres",
+        "auth": "connection string",
+        "team_relevance": ["tesla", "warren"]
+      },
+      "docker": {
+        "name": "Docker MCP (community)",
+        "source": "community",
+        "repo": "https://github.com/ckreiling/mcp-server-docker",
+        "description": "Docker container management — list, start, stop, logs, exec commands in containers.",
+        "install": "pip install mcp-server-docker",
+        "auth": "none (local Docker socket)",
+        "team_relevance": ["tesla"]
+      }
+    },
+    "data_and_search": {
+      "brave_search": {
+        "name": "Brave Search MCP",
+        "source": "official (Brave)",
+        "repo": "https://github.com/brave/brave-search-mcp-server",
+        "description": "Web and local search using Brave's Search API.",
+        "install": "npm install -g brave-search-mcp-server",
+        "auth": "apiKey (free tier: 2000 queries/month at https://brave.com/search/api/)",
+        "team_relevance": ["all"]
+      },
+      "knowledge_graph": {
+        "name": "MCP Memory (Knowledge Graph)",
+        "source": "official",
+        "description": "Build and query knowledge graphs with entities and relations. Persistent across sessions.",
+        "install": "pip install mcp-server-memory",
+        "auth": "none",
+        "team_relevance": ["all"]
+      }
+    },
+    "cloud_and_devops": {
+      "kubernetes": {
+        "name": "Kubernetes MCP",
+        "source": "community",
+        "repo": "https://github.com/Flux159/mcp-server-kubernetes",
+        "description": "K8s cluster operations — pods, deployments, services, logs.",
+        "install": "npm install -g mcp-server-kubernetes",
+        "auth": "kubeconfig",
+        "team_relevance": ["tesla"]
+      },
+      "terraform": {
+        "name": "Terraform MCP",
+        "source": "official (HashiCorp)",
+        "repo": "https://github.com/hashicorp/terraform-mcp-server",
+        "description": "Provider discovery, module analysis, Registry API integration for IaC workflows.",
+        "install": "go install or binary download",
+        "auth": "none",
+        "team_relevance": ["tesla"]
+      },
+      "cloudflare": {
+        "name": "Cloudflare MCP",
+        "source": "official (Cloudflare)",
+        "repo": "https://github.com/cloudflare/mcp-server-cloudflare",
+        "description": "Deploy and manage Cloudflare Workers, KV, R2, D1.",
+        "install": "npm install -g @cloudflare/mcp-server-cloudflare",
+        "auth": "apiKey",
+        "team_relevance": ["tesla"]
+      }
+    },
+    "productivity": {
+      "github": {
+        "name": "GitHub MCP",
+        "source": "official-archived",
+        "repo": "https://github.com/modelcontextprotocol/servers-archived/tree/main/src/github",
+        "description": "Repository management, file operations, PRs, issues via GitHub API.",
+        "install": "npm or docker",
+        "auth": "GitHub personal access token (free)",
+        "team_relevance": ["tesla", "jarvis"]
+      },
+      "slack": {
+        "name": "Slack MCP",
+        "source": "community (Zencoder)",
+        "repo": "https://github.com/zencoderai/slack-mcp-server",
+        "description": "Channel management, messaging, search in Slack workspaces.",
+        "install": "npm install",
+        "auth": "Slack Bot Token",
+        "team_relevance": ["all"]
+      },
+      "notion": {
+        "name": "Notion MCP",
+        "source": "community",
+        "description": "Create and manage Notion pages, databases, blocks.",
+        "auth": "Notion API key (free)",
+        "team_relevance": ["all"]
+      }
+    },
+    "security": {
+      "urlhaus": {
+        "name": "URLhaus (via fetch MCP)",
+        "description": "Query malware URL database via the fetch MCP server calling urlhaus-api.abuse.ch.",
+        "auth": "none",
+        "team_relevance": ["tesla", "tony"]
+      }
+    },
+    "finance": {
+      "alpaca": {
+        "name": "Alpaca Trading MCP",
+        "source": "official (Alpaca)",
+        "repo": "https://github.com/alpacahq/alpaca-mcp-server",
+        "description": "Trade stocks/options, analyze market data via Alpaca API.",
+        "auth": "apiKey (free paper trading account)",
+        "team_relevance": ["warren"]
+      },
+      "coingecko_mcp": {
+        "name": "CoinGecko MCP",
+        "source": "official (CoinGecko)",
+        "repo": "https://github.com/coingecko/coingecko-typescript/tree/main/packages/mcp-server",
+        "description": "Crypto price and market data across 200+ blockchain networks.",
+        "auth": "none (free tier) or apiKey",
+        "team_relevance": ["warren"]
+      }
+    }
+  },
+  "team_access_map": {
+    "jarvis": ["fetch", "git", "filesystem", "memory", "sequential_thinking", "github"],
+    "tesla": ["fetch", "git", "filesystem", "playwright", "sqlite", "docker", "kubernetes", "terraform"],
+    "warren": ["fetch", "filesystem", "sqlite", "alpaca", "coingecko_mcp"],
+    "steve": ["fetch", "filesystem", "playwright", "brave_search"],
+    "tony": ["fetch", "filesystem", "sequential_thinking"]
+  }
+}

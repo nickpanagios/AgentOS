@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+*.db
+keys.env
+chromadb_store/
+node_modules/
+*.log
+.env

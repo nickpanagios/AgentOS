@@ -1,0 +1,10 @@
+# PLACEHOLDER — this systemd unit needs to be created
+[Unit]
+Description=Agent Health Monitor
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+
+[Install]
+WantedBy=multi-user.target

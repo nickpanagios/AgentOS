@@ -1,0 +1,324 @@
+{
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "models": {
+    "kimi_k25": {
+      "id": "opencode/kimi-k2.5-free",
+      "cost": 0,
+      "context": 262144,
+      "tier": "free",
+      "priority": 1,
+      "best_for": [
+        "coding",
+        "reasoning",
+        "analysis",
+        "agentic",
+        "general"
+      ]
+    },
+    "minimax_m25": {
+      "id": "opencode/minimax-m2.5-free",
+      "cost": 0,
+      "context": 204800,
+      "tier": "free",
+      "priority": 2,
+      "best_for": [
+        "coding",
+        "office_work",
+        "agents",
+        "general"
+      ]
+    },
+    "trinity": {
+      "id": "arcee-ai/trinity-large-preview:free",
+      "cost": 0,
+      "context": 131000,
+      "tier": "free",
+      "priority": 3,
+      "best_for": [
+        "creative_writing",
+        "agentic",
+        "general",
+        "reasoning"
+      ]
+    },
+    "aurora": {
+      "id": "openrouter/aurora-alpha",
+      "cost": 0,
+      "context": 128000,
+      "tier": "free",
+      "priority": 4,
+      "best_for": [
+        "coding",
+        "agentic",
+        "reasoning"
+      ]
+    },
+    "step_flash": {
+      "id": "stepfun/step-3.5-flash:free",
+      "cost": 0,
+      "context": 256000,
+      "tier": "free",
+      "priority": 5,
+      "best_for": [
+        "reasoning",
+        "long_context",
+        "analysis"
+      ]
+    },
+    "qwen_coder_free": {
+      "id": "qwen/qwen3-coder:free",
+      "cost": 0,
+      "context": 262144,
+      "tier": "free",
+      "priority": 6,
+      "best_for": [
+        "coding",
+        "tool_use"
+      ]
+    },
+    "solar_pro": {
+      "id": "upstage/solar-pro-3:free",
+      "cost": 0,
+      "context": 128000,
+      "tier": "free",
+      "priority": 7,
+      "best_for": [
+        "general",
+        "multilingual"
+      ]
+    },
+    "glm_air": {
+      "id": "z-ai/glm-4.5-air:free",
+      "cost": 0,
+      "context": 128000,
+      "tier": "free",
+      "priority": 8,
+      "best_for": [
+        "general",
+        "reasoning"
+      ]
+    },
+    "llama_70b": {
+      "id": "meta-llama/llama-3.3-70b-instruct:free",
+      "cost": 0,
+      "context": 131072,
+      "tier": "free",
+      "priority": 9,
+      "best_for": [
+        "general",
+        "reasoning",
+        "coding"
+      ]
+    },
+    "gpt_oss": {
+      "id": "openai/gpt-oss-120b:free",
+      "cost": 0,
+      "context": 128000,
+      "tier": "free",
+      "priority": 10,
+      "best_for": [
+        "general",
+        "coding"
+      ]
+    },
+    "free_router": {
+      "id": "openrouter/free",
+      "cost": 0,
+      "context": 200000,
+      "tier": "free",
+      "priority": 99,
+      "best_for": [
+        "general",
+        "testing"
+      ]
+    },
+    "kimi_paid": {
+      "id": "moonshotai/kimi-k2.5",
+      "cost": 0.0005,
+      "context": 262144,
+      "tier": "paid",
+      "priority": 100,
+      "best_for": [
+        "coding",
+        "reasoning"
+      ]
+    },
+    "minimax_paid": {
+      "id": "minimax/minimax-m2.5",
+      "cost": 0.0003,
+      "context": 204800,
+      "tier": "paid",
+      "priority": 101,
+      "best_for": [
+        "coding",
+        "agents"
+      ]
+    },
+    "qwen_coder_paid": {
+      "id": "qwen/qwen3-coder-next",
+      "cost": 0.0001,
+      "context": 262144,
+      "tier": "paid",
+      "priority": 102,
+      "best_for": [
+        "coding",
+        "tool_use"
+      ]
+    }
+  },
+  "default_fallback_chain": [
+    "kimi_k25",
+    "minimax_m25",
+    "trinity",
+    "aurora",
+    "step_flash",
+    "qwen_coder_free",
+    "solar_pro",
+    "glm_air",
+    "llama_70b",
+    "gpt_oss",
+    "free_router"
+  ],
+  "task_model_map": {
+    "coding": [
+      "kimi_k25",
+      "minimax_m25",
+      "aurora",
+      "qwen_coder_free",
+      "trinity",
+      "step_flash"
+    ],
+    "code_review": [
+      "kimi_k25",
+      "minimax_m25",
+      "aurora",
+      "trinity",
+      "step_flash"
+    ],
+    "debugging": [
+      "kimi_k25",
+      "minimax_m25",
+      "aurora",
+      "qwen_coder_free",
+      "trinity"
+    ],
+    "analysis": [
+      "kimi_k25",
+      "minimax_m25",
+      "step_flash",
+      "trinity",
+      "aurora"
+    ],
+    "reasoning": [
+      "kimi_k25",
+      "minimax_m25",
+      "step_flash",
+      "aurora",
+      "trinity"
+    ],
+    "research": [
+      "kimi_k25",
+      "minimax_m25",
+      "step_flash",
+      "trinity",
+      "aurora"
+    ],
+    "financial": [
+      "kimi_k25",
+      "minimax_m25",
+      "step_flash",
+      "trinity",
+      "aurora"
+    ],
+    "legal_analysis": [
+      "kimi_k25",
+      "minimax_m25",
+      "step_flash",
+      "trinity",
+      "aurora"
+    ],
+    "business": [
+      "kimi_k25",
+      "minimax_m25",
+      "trinity",
+      "step_flash",
+      "aurora"
+    ],
+    "writing": [
+      "kimi_k25",
+      "minimax_m25",
+      "trinity",
+      "aurora",
+      "solar_pro"
+    ],
+    "marketing": [
+      "kimi_k25",
+      "minimax_m25",
+      "trinity",
+      "aurora",
+      "solar_pro"
+    ],
+    "creative": [
+      "kimi_k25",
+      "minimax_m25",
+      "trinity",
+      "aurora",
+      "solar_pro"
+    ],
+    "general": [
+      "kimi_k25",
+      "minimax_m25",
+      "trinity",
+      "aurora",
+      "solar_pro",
+      "free_router"
+    ],
+    "simple": [
+      "kimi_k25",
+      "minimax_m25",
+      "trinity",
+      "solar_pro",
+      "free_router"
+    ],
+    "extraction": [
+      "kimi_k25",
+      "minimax_m25",
+      "aurora",
+      "step_flash",
+      "trinity"
+    ],
+    "summarization": [
+      "kimi_k25",
+      "minimax_m25",
+      "step_flash",
+      "trinity",
+      "aurora"
+    ],
+    "agentic": [
+      "kimi_k25",
+      "minimax_m25",
+      "trinity",
+      "aurora",
+      "step_flash"
+    ],
+    "tool_use": [
+      "kimi_k25",
+      "minimax_m25",
+      "aurora",
+      "qwen_coder_free",
+      "trinity"
+    ],
+    "long_context": [
+      "kimi_k25",
+      "minimax_m25",
+      "step_flash",
+      "qwen_coder_free",
+      "trinity"
+    ]
+  },
+  "policy": {
+    "free_tier_only_by_default": true,
+    "paid_requires": "explicit authorization from Nikolas"
+  }
+}

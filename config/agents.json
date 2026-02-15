@@ -1,0 +1,547 @@
+{
+  "version": "2.0",
+  "organization": "Multi-Agent Development System",
+  "human_principal": "Nikolas",
+  "escalation_chain": [
+    "sub-agent",
+    "executive",
+    "jarvis",
+    "nikolas"
+  ],
+  "agent_count": 25,
+  "agents": [
+    {
+      "name": "jarvis",
+      "type": "executive",
+      "role": "COO/CPO/CSO/CCO",
+      "title": "Central Executive",
+      "reports_to": "nikolas",
+      "manages": [
+        "tesla",
+        "warren",
+        "steve",
+        "tony"
+      ],
+      "specializations": [
+        "operations",
+        "product",
+        "security",
+        "compliance",
+        "strategy"
+      ],
+      "primary_focus": "organizational-integration",
+      "decision_style": "systems-thinking",
+      "tools": [
+        "black",
+        "flake8",
+        "mypy",
+        "pytest",
+        "docker",
+        "terraform",
+        "ansible"
+      ],
+      "home_directory": "/home/jarvis",
+      "groups": [
+        "executive-agents"
+      ]
+    },
+    {
+      "name": "tesla",
+      "type": "executive",
+      "role": "CTO/CIO",
+      "title": "Technology Executive",
+      "reports_to": "jarvis",
+      "manages": [
+        "backend",
+        "frontend",
+        "ai-mlops",
+        "devops-engineer",
+        "security-engineer",
+        "data-engineer"
+      ],
+      "specializations": [
+        "architecture",
+        "infrastructure",
+        "engineering",
+        "ai-ml",
+        "devops",
+        "data"
+      ],
+      "primary_focus": "technology-excellence",
+      "decision_style": "architecture-first",
+      "tools": [
+        "docker",
+        "terraform",
+        "ansible",
+        "ollama",
+        "jupyter",
+        "git"
+      ],
+      "home_directory": "/home/tesla",
+      "groups": [
+        "executive-agents"
+      ]
+    },
+    {
+      "name": "warren",
+      "type": "executive",
+      "role": "CFO/CAO",
+      "title": "Financial Executive",
+      "reports_to": "jarvis",
+      "manages": [
+        "financial-analyst",
+        "accounting-specialist",
+        "resource-manager",
+        "administrative-coordinator"
+      ],
+      "specializations": [
+        "finance",
+        "budgeting",
+        "forecasting",
+        "administration",
+        "procurement",
+        "resource-management"
+      ],
+      "primary_focus": "financial-sustainability",
+      "decision_style": "value-driven",
+      "tools": [
+        "pandas",
+        "numpy",
+        "matplotlib",
+        "seaborn",
+        "openpyxl",
+        "xlsxwriter"
+      ],
+      "home_directory": "/home/warren",
+      "groups": [
+        "executive-agents"
+      ]
+    },
+    {
+      "name": "steve",
+      "type": "executive",
+      "role": "CMO",
+      "title": "Marketing Executive",
+      "reports_to": "jarvis",
+      "manages": [
+        "brand-strategist",
+        "content-creator",
+        "social-media-manager",
+        "seo-specialist",
+        "analytics-expert"
+      ],
+      "specializations": [
+        "marketing",
+        "brand",
+        "customer-acquisition",
+        "analytics",
+        "content",
+        "seo"
+      ],
+      "primary_focus": "customer-growth",
+      "decision_style": "data-meets-intuition",
+      "tools": [
+        "pandas",
+        "numpy",
+        "matplotlib",
+        "seaborn",
+        "plotly",
+        "requests",
+        "beautifulsoup4"
+      ],
+      "home_directory": "/home/steve",
+      "groups": [
+        "executive-agents"
+      ]
+    },
+    {
+      "name": "tony",
+      "type": "executive",
+      "role": "CLO",
+      "title": "Legal Executive",
+      "reports_to": "jarvis",
+      "manages": [
+        "contract-specialist",
+        "compliance-analyst",
+        "intellectual-property",
+        "litigation-support",
+        "corporate-governance"
+      ],
+      "specializations": [
+        "legal",
+        "compliance",
+        "governance",
+        "contracts",
+        "ip",
+        "risk-management"
+      ],
+      "primary_focus": "legal-protection",
+      "decision_style": "risk-quantification",
+      "tools": [
+        "pandas",
+        "numpy",
+        "matplotlib",
+        "seaborn",
+        "requests",
+        "beautifulsoup4"
+      ],
+      "home_directory": "/home/tony",
+      "groups": [
+        "executive-agents"
+      ]
+    },
+    {
+      "name": "backend",
+      "type": "sub-agent",
+      "team": "technology",
+      "role": "Backend Engineer",
+      "reports_to": "tesla",
+      "skills": [
+        "python",
+        "apis",
+        "databases",
+        "microservices"
+      ],
+      "home_directory": "/home/backend",
+      "groups": [
+        "sub-agents",
+        "technology-team"
+      ]
+    },
+    {
+      "name": "frontend",
+      "type": "sub-agent",
+      "team": "technology",
+      "role": "Frontend Engineer",
+      "reports_to": "tesla",
+      "skills": [
+        "react",
+        "typescript",
+        "css",
+        "ui-ux"
+      ],
+      "home_directory": "/home/frontend",
+      "groups": [
+        "sub-agents",
+        "technology-team"
+      ]
+    },
+    {
+      "name": "ai-mlops",
+      "type": "sub-agent",
+      "team": "technology",
+      "role": "AI/ML Operations",
+      "reports_to": "tesla",
+      "skills": [
+        "machine-learning",
+        "model-deployment",
+        "mlops",
+        "data-pipelines"
+      ],
+      "home_directory": "/home/ai-mlops",
+      "groups": [
+        "sub-agents",
+        "technology-team"
+      ]
+    },
+    {
+      "name": "devops-engineer",
+      "type": "sub-agent",
+      "team": "technology",
+      "role": "DevOps Engineer",
+      "reports_to": "tesla",
+      "skills": [
+        "ci-cd",
+        "docker",
+        "kubernetes",
+        "terraform",
+        "monitoring"
+      ],
+      "home_directory": "/home/devops-engineer",
+      "groups": [
+        "sub-agents",
+        "technology-team"
+      ]
+    },
+    {
+      "name": "security-engineer",
+      "type": "sub-agent",
+      "team": "technology",
+      "role": "Security Engineer",
+      "reports_to": "tesla",
+      "skills": [
+        "penetration-testing",
+        "vulnerability-assessment",
+        "security-audits"
+      ],
+      "home_directory": "/home/security-engineer",
+      "groups": [
+        "sub-agents",
+        "technology-team"
+      ]
+    },
+    {
+      "name": "data-engineer",
+      "type": "sub-agent",
+      "team": "technology",
+      "role": "Data Engineer",
+      "reports_to": "tesla",
+      "skills": [
+        "etl",
+        "data-warehousing",
+        "sql",
+        "spark",
+        "airflow"
+      ],
+      "home_directory": "/home/data-engineer",
+      "groups": [
+        "sub-agents",
+        "technology-team"
+      ]
+    },
+    {
+      "name": "financial-analyst",
+      "type": "sub-agent",
+      "team": "finance",
+      "role": "Financial Analyst",
+      "reports_to": "warren",
+      "skills": [
+        "financial-modeling",
+        "forecasting",
+        "valuation",
+        "reporting"
+      ],
+      "home_directory": "/home/financial-analyst",
+      "groups": [
+        "sub-agents",
+        "finance-team"
+      ]
+    },
+    {
+      "name": "accounting-specialist",
+      "type": "sub-agent",
+      "team": "finance",
+      "role": "Accounting Specialist",
+      "reports_to": "warren",
+      "skills": [
+        "bookkeeping",
+        "tax",
+        "audit",
+        "compliance"
+      ],
+      "home_directory": "/home/accounting-specialist",
+      "groups": [
+        "sub-agents",
+        "finance-team"
+      ]
+    },
+    {
+      "name": "resource-manager",
+      "type": "sub-agent",
+      "team": "finance",
+      "role": "Resource Manager",
+      "reports_to": "warren",
+      "skills": [
+        "budgeting",
+        "procurement",
+        "vendor-management",
+        "cost-optimization"
+      ],
+      "home_directory": "/home/resource-manager",
+      "groups": [
+        "sub-agents",
+        "finance-team"
+      ]
+    },
+    {
+      "name": "administrative-coordinator",
+      "type": "sub-agent",
+      "team": "finance",
+      "role": "Administrative Coordinator",
+      "reports_to": "warren",
+      "skills": [
+        "scheduling",
+        "documentation",
+        "process-management"
+      ],
+      "home_directory": "/home/administrative-coordinator",
+      "groups": [
+        "sub-agents",
+        "finance-team"
+      ]
+    },
+    {
+      "name": "brand-strategist",
+      "type": "sub-agent",
+      "team": "marketing",
+      "role": "Brand Strategist",
+      "reports_to": "steve",
+      "skills": [
+        "brand-identity",
+        "positioning",
+        "market-research"
+      ],
+      "home_directory": "/home/brand-strategist",
+      "groups": [
+        "sub-agents",
+        "marketing-team"
+      ]
+    },
+    {
+      "name": "content-creator",
+      "type": "sub-agent",
+      "team": "marketing",
+      "role": "Content Creator",
+      "reports_to": "steve",
+      "skills": [
+        "copywriting",
+        "content-strategy",
+        "storytelling"
+      ],
+      "home_directory": "/home/content-creator",
+      "groups": [
+        "sub-agents",
+        "marketing-team"
+      ]
+    },
+    {
+      "name": "social-media-manager",
+      "type": "sub-agent",
+      "team": "marketing",
+      "role": "Social Media Manager",
+      "reports_to": "steve",
+      "skills": [
+        "social-platforms",
+        "engagement",
+        "community-management"
+      ],
+      "home_directory": "/home/social-media-manager",
+      "groups": [
+        "sub-agents",
+        "marketing-team"
+      ]
+    },
+    {
+      "name": "seo-specialist",
+      "type": "sub-agent",
+      "team": "marketing",
+      "role": "SEO Specialist",
+      "reports_to": "steve",
+      "skills": [
+        "seo-audit",
+        "keyword-research",
+        "link-building",
+        "technical-seo"
+      ],
+      "home_directory": "/home/seo-specialist",
+      "groups": [
+        "sub-agents",
+        "marketing-team"
+      ]
+    },
+    {
+      "name": "analytics-expert",
+      "type": "sub-agent",
+      "team": "marketing",
+      "role": "Analytics Expert",
+      "reports_to": "steve",
+      "skills": [
+        "google-analytics",
+        "data-visualization",
+        "a-b-testing",
+        "conversion-optimization"
+      ],
+      "home_directory": "/home/analytics-expert",
+      "groups": [
+        "sub-agents",
+        "marketing-team"
+      ]
+    },
+    {
+      "name": "contract-specialist",
+      "type": "sub-agent",
+      "team": "legal",
+      "role": "Contract Specialist",
+      "reports_to": "tony",
+      "skills": [
+        "contract-drafting",
+        "negotiation",
+        "contract-review"
+      ],
+      "home_directory": "/home/contract-specialist",
+      "groups": [
+        "sub-agents",
+        "legal-team"
+      ]
+    },
+    {
+      "name": "compliance-analyst",
+      "type": "sub-agent",
+      "team": "legal",
+      "role": "Compliance Analyst",
+      "reports_to": "tony",
+      "skills": [
+        "regulatory-compliance",
+        "policy-development",
+        "risk-assessment"
+      ],
+      "home_directory": "/home/compliance-analyst",
+      "groups": [
+        "sub-agents",
+        "legal-team"
+      ]
+    },
+    {
+      "name": "intellectual-property",
+      "type": "sub-agent",
+      "team": "legal",
+      "role": "IP Specialist",
+      "reports_to": "tony",
+      "skills": [
+        "patents",
+        "trademarks",
+        "copyright",
+        "trade-secrets"
+      ],
+      "home_directory": "/home/intellectual-property",
+      "groups": [
+        "sub-agents",
+        "legal-team"
+      ]
+    },
+    {
+      "name": "litigation-support",
+      "type": "sub-agent",
+      "team": "legal",
+      "role": "Litigation Support",
+      "reports_to": "tony",
+      "skills": [
+        "legal-research",
+        "case-management",
+        "discovery"
+      ],
+      "home_directory": "/home/litigation-support",
+      "groups": [
+        "sub-agents",
+        "legal-team"
+      ]
+    },
+    {
+      "name": "corporate-governance",
+      "type": "sub-agent",
+      "team": "legal",
+      "role": "Corporate Governance",
+      "reports_to": "tony",
+      "skills": [
+        "board-governance",
+        "corporate-structure",
+        "regulatory-filings"
+      ],
+      "home_directory": "/home/corporate-governance",
+      "groups": [
+        "sub-agents",
+        "legal-team"
+      ]
+    }
+  ]
+}

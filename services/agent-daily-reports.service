@@ -1,0 +1,12 @@
+[Unit]
+Description=Agent Daily Reports Pipeline
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env python3 /home/executive-workspace/reports/run_reports.py
+User=root
+WorkingDirectory=/home/executive-workspace/reports
+StandardOutput=journal
+StandardError=journal
