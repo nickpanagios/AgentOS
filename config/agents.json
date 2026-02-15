@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "organization": "Multi-Agent Development System",
+  "organization": "Nikolas (CEO) \u2192 Jarvis (COO) \u2192 Tesla (CTO), Warren (CFO), Steve (CMO), Tony (CLO), Jordan (CSO)",
   "human_principal": "Nikolas",
   "escalation_chain": [
     "sub-agent",
@@ -8,7 +8,7 @@
     "jarvis",
     "nikolas"
   ],
-  "agent_count": 25,
+  "agent_count": 31,
   "agents": [
     {
       "name": "jarvis",
@@ -541,6 +541,91 @@
       "groups": [
         "sub-agents",
         "legal-team"
+      ]
+    },
+    {
+      "name": "jordan",
+      "role": "CSO",
+      "full_title": "Chief Sales Officer",
+      "type": "executive",
+      "team": "jordan",
+      "reports_to": "jarvis",
+      "groups": [
+        "executive-agents",
+        "shared-code",
+        "team-jordan"
+      ],
+      "venv_packages": [
+        "pandas",
+        "numpy",
+        "matplotlib",
+        "seaborn",
+        "requests",
+        "beautifulsoup4",
+        "openpyxl",
+        "chromadb"
+      ],
+      "sub_agents": [
+        "sales-director",
+        "account-executive",
+        "business-development",
+        "client-success",
+        "sales-operations"
+      ]
+    },
+    {
+      "name": "sales-director",
+      "role": "Sales Director",
+      "type": "sub-agent",
+      "team": "jordan",
+      "reports_to": "jordan",
+      "groups": [
+        "sub-agents",
+        "team-jordan"
+      ]
+    },
+    {
+      "name": "account-executive",
+      "role": "Account Executive",
+      "type": "sub-agent",
+      "team": "jordan",
+      "reports_to": "jordan",
+      "groups": [
+        "sub-agents",
+        "team-jordan"
+      ]
+    },
+    {
+      "name": "business-development",
+      "role": "Business Development Rep",
+      "type": "sub-agent",
+      "team": "jordan",
+      "reports_to": "jordan",
+      "groups": [
+        "sub-agents",
+        "team-jordan"
+      ]
+    },
+    {
+      "name": "client-success",
+      "role": "Client Success Manager",
+      "type": "sub-agent",
+      "team": "jordan",
+      "reports_to": "jordan",
+      "groups": [
+        "sub-agents",
+        "team-jordan"
+      ]
+    },
+    {
+      "name": "sales-operations",
+      "role": "Sales Operations Analyst",
+      "type": "sub-agent",
+      "team": "jordan",
+      "reports_to": "jordan",
+      "groups": [
+        "sub-agents",
+        "team-jordan"
       ]
     }
   ]

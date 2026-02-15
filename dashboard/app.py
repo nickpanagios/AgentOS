@@ -25,6 +25,9 @@ EXECUTIVES = {
     "tony": {"role":"CLO","title":"Legal","color":"#ef4444","emoji":"⚖️",
         "desc":"Contracts, compliance, IP protection, corporate governance, risk management.",
         "skills":["Legal","Compliance","Contracts","IP","Governance"]},
+    "jordan": {"role":"CSO","title":"Sales","color":"#06b6d4","emoji":"💰",
+        "desc":"Revenue strategy, pipeline management, client lifecycle, sales operations.",
+        "skills":["Sales","Revenue","Pipeline","CRM","Forecasting"]},
 }
 
 TEAMS = {
@@ -55,6 +58,13 @@ TEAMS = {
         "intellectual-property":{"role":"IP Specialist","desc":"Patents, trademarks, copyright"},
         "litigation-support":{"role":"Litigation Support","desc":"Document review, discovery"},
         "corporate-governance":{"role":"Governance Specialist","desc":"Board relations, corporate records"},
+    },
+    "jordan": {
+        "sales-director":{"role":"Sales Director","desc":"Pipeline management, deal strategy, forecasting"},
+        "account-executive":{"role":"Account Executive","desc":"Client meetings, proposals, negotiations"},
+        "business-development":{"role":"Business Development Rep","desc":"Prospecting, outbound, lead qualification"},
+        "client-success":{"role":"Client Success Manager","desc":"Onboarding, retention, upselling, NPS"},
+        "sales-operations":{"role":"Sales Operations Analyst","desc":"CRM analytics, process optimization"},
     },
 }
 

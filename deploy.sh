@@ -17,25 +17,31 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[1;34m'
 BOLD='\033[1m'; NC='\033[0m'
 
 # Agents
-EXECUTIVES=(jarvis tesla warren steve tony)
+EXECUTIVES=(jarvis tesla warren steve tony jordan)
 SUBAGENTS=(backend frontend ai-mlops devops-engineer security-engineer data-engineer \
   financial-analyst accounting-specialist resource-manager administrative-coordinator \
   brand-strategist content-creator social-media-manager seo-specialist analytics-expert \
-  contract-specialist compliance-analyst intellectual-property litigation-support corporate-governance)
+  contract-specialist compliance-analyst intellectual-property litigation-support corporate-governance \
+  sales-director account-executive business-development client-success sales-operations)
 ALL_AGENTS=("${EXECUTIVES[@]}" "${SUBAGENTS[@]}")
 
 # Groups: name:gid
 declare -A GROUPS=( [executive-agents]=1011 [sub-agents]=1012 [shared-code]=1013 \
-  [team-tesla]=1014 [team-warren]=1015 [team-steve]=1016 [team-tony]=1017 )
+  [team-tesla]=1014 [team-warren]=1015 [team-steve]=1016 [team-tony]=1017 [team-jordan]=1018 )
 
 # Team memberships (primary supplementary groups)
 declare -A USER_GROUPS
-USER_GROUPS[jarvis]="executive-agents,shared-code,team-tesla,team-warren,team-steve,team-tony"
+USER_GROUPS[jarvis]="executive-agents,shared-code,team-tesla,team-warren,team-steve,team-tony,team-jordan"
 USER_GROUPS[tesla]="executive-agents,shared-code,team-tesla"
 USER_GROUPS[warren]="executive-agents,shared-code,team-warren"
 USER_GROUPS[steve]="executive-agents,shared-code,team-steve"
 USER_GROUPS[tony]="executive-agents,shared-code,team-tony"
+USER_GROUPS[jordan]="executive-agents,shared-code,team-jordan"
 for sa in "${SUBAGENTS[@]}"; do USER_GROUPS[$sa]="sub-agents,shared-code"; done
+# Jordan's sub-agents also need team-jordan
+for jsa in sales-director account-executive business-development client-success sales-operations; do
+  USER_GROUPS[$jsa]="sub-agents,team-jordan"
+done
 
 # Venv packages
 declare -A VENV_PKGS
@@ -44,6 +50,7 @@ VENV_PKGS[tesla]="docker-compose ansible pandas numpy matplotlib requests beauti
 VENV_PKGS[warren]="pandas numpy matplotlib seaborn openpyxl xlsxwriter chromadb"
 VENV_PKGS[steve]="pandas plotly requests beautifulsoup4 matplotlib seaborn chromadb"
 VENV_PKGS[tony]="pandas requests beautifulsoup4 matplotlib seaborn chromadb"
+VENV_PKGS[jordan]="pandas numpy matplotlib seaborn requests beautifulsoup4 openpyxl chromadb"
 
 SHARED_LIBS=(llm_client.py agent_executor.py orchestrator.py api_client.py mcp_client.py knowledge_client.py screenshot.py)
 

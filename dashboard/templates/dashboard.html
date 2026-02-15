@@ -193,7 +193,7 @@ async function loadProjects(){
 loadProjects();
 
 function tog(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('open')}
-const C={jarvis:'#3b82f6',tesla:'#8b5cf6',warren:'#10b981',steve:'#f59e0b',tony:'#ef4444'};
+const C={jarvis:'#3b82f6',tesla:'#8b5cf6',warren:'#10b981',steve:'#f59e0b',tony:'#ef4444',jordan:'#06b6d4'};
 function dc(s){return s==='online'?'on':'off'}
 function ini(n){return n.split('-').map(w=>w[0].toUpperCase()).join('').slice(0,2)}
 
@@ -213,7 +213,7 @@ document.getElementById('sb').innerHTML=[
 
 // Department columns
 const dr=document.getElementById('dept-row');dr.innerHTML='';
-const execOrder=['steve','tesla','tony','warren'];
+const execOrder=['steve','tesla','tony','warren','jordan'];
 for(const n of execOrder){
   const ex=d.executives[n];if(!ex)continue;
   const subs=ex.team_details||{};
