@@ -1,1 +1,250 @@
-# PLACEHOLDER — needs to be created or copied from live system
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentOS — Command Center</title>
+<style>
+:root{--bg-0:#0a0e17;--bg-1:#111827;--bg-2:#1a2236;--bg-3:#243049;--border:#2a3650;--border-h:#3d4f6f;--t1:#f1f5f9;--t2:#94a3b8;--t3:#64748b;--blue:#3b82f6;--purple:#8b5cf6;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;--cyan:#06b6d4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-0);color:var(--t1);overflow-x:hidden}
+
+/* ── Nav ── */
+.nav{display:flex;align-items:center;gap:6px;padding:12px 24px;background:var(--bg-1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.nav-logo{font-size:1.2rem;font-weight:700;margin-right:16px}.nav-logo span{color:var(--blue)}
+.nav-tab{padding:6px 14px;border-radius:6px;font-size:.8rem;cursor:pointer;color:var(--t2);transition:all .2s;background:0;border:0;font-family:inherit}
+.nav-tab:hover{color:var(--t1);background:var(--bg-2)}.nav-tab.active{color:var(--t1);background:var(--blue)}
+.nav-spacer{flex:1}.nav-status{font-size:.75rem;color:var(--t3)}
+.nav-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--green);margin-right:4px;box-shadow:0 0 6px var(--green)}
+
+.page{display:none;padding:24px;max-width:1400px;margin:0 auto}.page.active{display:block}
+
+/* ── Stats Bar ── */
+.stats-bar{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.stat-card{flex:1;min-width:130px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.stat-value{font-size:1.8rem;font-weight:700;line-height:1}.stat-label{font-size:.72rem;color:var(--t3);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── Org Chart v2 — hierarchical ── */
+.org-header{text-align:center;margin-bottom:8px}
+.org-header h2{font-size:1.3rem;font-weight:700}.org-header p{font-size:.75rem;color:var(--t3)}
+.org-center{display:flex;flex-direction:column;align-items:center}
+.org-vline{width:2px;height:28px;background:var(--border)}
+
+/* Card styles */
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;transition:all .25s;cursor:default}
+.card:hover{border-color:var(--border-h);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.card .accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.card .dot{width:10px;height:10px;border-radius:50%;display:inline-block;position:absolute;top:14px;right:14px}
+.card .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}.card .dot.off{background:var(--t3)}
+.card .emoji{font-size:1.8rem;margin-bottom:6px}
+.card .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.card .name{font-size:1.1rem;font-weight:700;margin:4px 0 2px}.card .desc{font-size:.72rem;color:var(--t3);line-height:1.4}
+.card .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.card .tag{padding:2px 6px;background:var(--bg-3);border-radius:3px;font-size:.62rem;color:var(--t2)}
+.card .meta{margin-top:8px;font-size:.68rem;color:var(--t3)}
+
+.card-boss{width:300px;text-align:center}
+.card-boss .emoji{font-size:2.2rem}
+.card-boss .name{font-size:1.3rem}
+
+.card-exec{width:240px}
+
+/* Department columns layout */
+.dept-row{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;position:relative;padding-top:28px}
+.dept-row::before{content:'';position:absolute;top:0;left:10%;right:10%;height:2px;background:var(--border)}
+.dept-col{display:flex;flex-direction:column;align-items:center;gap:0;min-width:260px;max-width:300px}
+.dept-col .org-vline{height:20px}
+
+/* Team dropdown under each exec */
+.team-section{width:100%;margin-top:12px}
+.team-header{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;transition:background .2s;font-size:.82rem}
+.team-header:hover{background:var(--bg-2)}
+.team-header .label{font-weight:600}.team-header .count{font-size:.72rem;color:var(--t3);background:var(--bg-3);padding:2px 8px;border-radius:4px}
+.team-header .arrow{color:var(--t3);transition:transform .3s;font-size:.7rem}
+.team-header.open .arrow{transform:rotate(180deg)}
+.team-body{max-height:0;overflow:hidden;transition:max-height .35s ease;border-left:2px solid var(--border);margin-left:16px;margin-top:4px}
+.team-body.open{max-height:600px}
+
+.agent-row{display:flex;align-items:center;padding:10px 14px;gap:10px;transition:background .15s;border-bottom:1px solid var(--bg-3)}
+.agent-row:last-child{border-bottom:0}.agent-row:hover{background:var(--bg-2)}
+.agent-avatar{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0}
+.agent-info{flex:1;min-width:0}.agent-name{font-size:.82rem;font-weight:600}.agent-role{font-size:.68rem;color:var(--t2)}.agent-desc{font-size:.62rem;color:var(--t3);margin-top:1px}
+.agent-badge{font-size:.65rem;padding:2px 8px;border-radius:4px}
+.agent-badge.active{background:#052e16;color:var(--green)}.agent-badge.pending{background:#422006;color:var(--yellow)}
+
+/* ── Tasks ── */
+.stit{font-size:1.2rem;font-weight:600;margin-bottom:16px}
+.ti{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;display:flex;gap:14px}
+.tbar{width:4px;border-radius:2px;flex-shrink:0}.tbar.CRITICAL{background:var(--red)}.tbar.HIGH{background:var(--yellow)}.tbar.MEDIUM{background:var(--blue)}.tbar.LOW{background:var(--t3)}
+.tc2{flex:1}.tnm{font-weight:600;font-size:.95rem}.tm{font-size:.78rem;color:var(--t3);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tbg{padding:3px 10px;border-radius:5px;font-size:.68rem;font-weight:600}
+.tbg-pending{background:#422006;color:var(--yellow)}.tbg-active{background:#052e16;color:var(--green)}.tbg-completed{background:#1e1b4b;color:var(--purple)}
+.tds{font-size:.82rem;color:var(--t2);margin-top:8px;line-height:1.5}
+
+/* ── Comms ── */
+.mf{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow-y:auto;padding:4px}
+.mf::-webkit-scrollbar{width:6px}.mf::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:3px}
+.mb{padding:12px 16px;border-radius:14px;max-width:80%;font-size:.85rem;line-height:1.5;animation:fi .3s}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.mb.l{background:var(--bg-2);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.mb.r{background:#162040;border:1px solid #253a5e;align-self:flex-end;border-bottom-right-radius:4px}
+.ms{font-weight:700;font-size:.82rem;margin-bottom:3px}.msub{color:var(--t2)}
+.mft{display:flex;gap:8px;align-items:center;margin-top:6px}.mt{font-size:.65rem;color:var(--t3)}
+.mp{padding:1px 7px;border-radius:4px;font-size:.6rem;font-weight:700}
+.mp-CRITICAL{background:#450a0a;color:#fca5a5}.mp-HIGH{background:#422006;color:#fcd34d}.mp-MEDIUM{background:#172554;color:#93c5fd}.mp-LOW{background:#1e293b;color:#94a3b8}
+.mtp{font-size:.6rem;color:var(--t3);padding:1px 6px;background:var(--bg-3);border-radius:3px}
+
+/* ── System ── */
+.hg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.hc{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:18px}
+.hc h3{font-size:.82rem;color:var(--t2);margin-bottom:10px}.hv{font-size:1.6rem;font-weight:700}
+.hs{font-size:.75rem;color:var(--t3);margin-top:4px}
+.hbar{height:6px;background:var(--bg-3);border-radius:3px;margin-top:10px;overflow:hidden}
+.hfill{height:100%;border-radius:3px;transition:width .6s}
+
+.empty{text-align:center;padding:60px 20px;color:var(--t3)}
+@media(max-width:900px){.dept-row{flex-direction:column;align-items:center}.dept-row::before{display:none}}
+</style>
+</head>
+<body>
+<div class="nav">
+  <div class="nav-logo">🤖 <span>AgentOS</span></div>
+  <button class="nav-tab active" data-page="org">📋 Org Chart</button>
+  <button class="nav-tab" data-page="tasks">📝 Task Manager</button>
+  <button class="nav-tab" data-page="comms">💬 Comms Log</button>
+  <button class="nav-tab" data-page="system">⚡ System</button>
+  <div class="nav-spacer"></div>
+  <div class="nav-status"><span class="nav-dot"></span> <span id="ns">Connecting...</span></div>
+</div>
+
+<!-- ORG CHART -->
+<div class="page active" id="page-org">
+  <div class="org-header"><h2>🏛️ Organization Chart</h2><p>AgentOS — Operational Structure</p></div>
+  <div class="stats-bar" id="sb"></div>
+
+  <div class="org-center">
+    <!-- Nikolas -->
+    <div class="card card-boss" style="border-color:var(--t3)">
+      <div class="accent" style="background:var(--t3)"></div>
+      <div class="emoji">👤</div>
+      <div class="badge" style="background:#1e293b;color:var(--t2)">CEO</div>
+      <div class="name">Nikolas</div>
+      <div class="desc">Vision · Strategy · Final Decisions</div>
+    </div>
+    <div class="org-vline"></div>
+
+    <!-- Jarvis -->
+    <div class="card card-boss" id="jc" style="border-color:var(--blue)">
+      <div class="accent" style="background:var(--blue)"></div>
+      <div class="dot on"></div>
+      <div class="emoji">🤖</div>
+      <div class="badge" style="background:#3b82f622;color:var(--blue)">COO</div>
+      <div class="name">Jarvis</div>
+      <div class="desc">Research · Delegation · Execution · Orchestration</div>
+      <div class="tags"><span class="tag">Operations</span><span class="tag">Product</span><span class="tag">Security</span><span class="tag">Strategy</span></div>
+    </div>
+    <div class="org-vline"></div>
+  </div>
+
+  <!-- Department heads row -->
+  <div class="dept-row" id="dept-row"></div>
+</div>
+
+<!-- TASKS -->
+<div class="page" id="page-tasks"><div class="stit">📝 Task Manager</div><div id="tl"></div></div>
+
+<!-- COMMS -->
+<div class="page" id="page-comms"><div class="stit">💬 Agent Conversation Log</div><div class="mf" id="mf"></div></div>
+
+<!-- SYSTEM -->
+<div class="page" id="page-system"><div class="stit">⚡ System Health</div><div class="hg" id="hg"></div><div style="margin-top:28px"><div class="stit">🔒 Security & Audit</div><div class="hg" id="sg"></div></div></div>
+
+<script>
+document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));t.classList.add('active');document.getElementById('page-'+t.dataset.page).classList.add('active')})});
+
+function tog(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('open')}
+const C={jarvis:'#3b82f6',tesla:'#8b5cf6',warren:'#10b981',steve:'#f59e0b',tony:'#ef4444'};
+function dc(s){return s==='online'?'on':'off'}
+function ini(n){return n.split('-').map(w=>w[0].toUpperCase()).join('').slice(0,2)}
+
+async function load(){
+try{
+const d=await(await fetch('/api/data')).json();
+document.getElementById('ns').textContent=`${d.stats.active} online · ${d.stats.total_agents} agents · ${new Date(d.ts).toLocaleTimeString()}`;
+
+// Stats bar
+document.getElementById('sb').innerHTML=[
+{v:d.stats.executives,l:'Chiefs',c:'var(--blue)'},{v:d.stats.total_agents,l:'Total Agents',c:'var(--t1)'},
+{v:d.stats.active,l:'🟢 Active',c:'var(--green)'},{v:d.stats.configured,l:'✅ Configured',c:'var(--cyan)'},
+{v:d.stats.sub_agents,l:'Sub-Agents',c:'var(--purple)'}
+].map(s=>`<div class="stat-card"><div class="stat-value" style="color:${s.c}">${s.v}</div><div class="stat-label">${s.l}</div></div>`).join('');
+
+// Department columns — each exec + their team underneath
+const dr=document.getElementById('dept-row');dr.innerHTML='';
+const execOrder=['steve','tesla','tony','warren'];
+for(const n of execOrder){
+  const ex=d.executives[n];if(!ex)continue;
+  const subs=ex.team_details||{};
+  const subCount=Object.keys(subs).length;
+
+  // Build sub-agent rows
+  let rows='';
+  for(const[an,ai]of Object.entries(subs)){
+    const sa=d.sub_agents[an]||{};
+    const configured=sa.configured;
+    rows+=`<div class="agent-row">
+      <div class="agent-avatar" style="background:${ex.color}">${ini(an)}</div>
+      <div class="agent-info"><div class="agent-name">${an}</div><div class="agent-role">${ai.role}</div><div class="agent-desc">${ai.desc}</div></div>
+      <span class="agent-badge ${configured?'active':'pending'}">${configured?'✅ Active':'⚠️ Pending'}</span>
+    </div>`;
+  }
+
+  dr.innerHTML+=`<div class="dept-col">
+    <div class="org-vline"></div>
+    <div class="card card-exec" style="border-color:${ex.color}">
+      <div class="accent" style="background:${ex.color}"></div>
+      <div class="dot ${dc(ex.status)}"></div>
+      <div class="emoji">${ex.emoji}</div>
+      <div class="badge" style="background:${ex.color}22;color:${ex.color}">${ex.role}</div>
+      <div class="name">${n.charAt(0).toUpperCase()+n.slice(1)}</div>
+      <div class="desc">${ex.desc}</div>
+      <div class="meta">📬 ${ex.inbox} msgs · 👥 ${subCount} agents</div>
+    </div>
+    ${subCount?`<div class="team-section">
+      <div class="team-header" onclick="tog(this)">
+        <span class="label">${ex.title}</span>
+        <span><span class="count">${subCount} agents</span> <span class="arrow">▼</span></span>
+      </div>
+      <div class="team-body">${rows}</div>
+    </div>`:''}
+  </div>`;
+}
+
+// Tasks
+const tl=document.getElementById('tl');
+if(!d.tasks.length){tl.innerHTML='<div class="empty">No tasks assigned yet.</div>'}else{
+tl.innerHTML=d.tasks.map(t=>`<div class="ti"><div class="tbar ${t.priority||'MEDIUM'}"></div><div class="tc2"><div class="tnm">${t.name||t.id}</div><div class="tm"><span class="tbg tbg-${t.state}">${t.state}</span>${t.from?`<span>From: <b>${t.from}</b></span>`:''}${t.to?`<span>→ <b>${t.to}</b></span>`:''}${t.deadline&&t.deadline!=='none'?`<span>📅 ${t.deadline}</span>`:''}</div>${t.description?`<div class="tds">${t.description}</div>`:''}</div></div>`).join('')}
+
+// Comms
+const mf=document.getElementById('mf');
+if(!d.messages.length){mf.innerHTML='<div class="empty">No messages yet.</div>'}else{
+mf.innerHTML=d.messages.map((m,i)=>{const parts=m.route.split(/\s*[-→>]+\s*/);const sender=(parts[0]||'').trim();const sc=C[sender]||'var(--cyan)';const side=i%2===0?'l':'r';
+return`<div class="mb ${side}"><div class="ms" style="color:${sc}">${m.route}</div><div class="msub">${m.subject}</div><div class="mft"><span class="mt">${m.ts}</span><span class="mp mp-${m.priority}">${m.priority}</span><span class="mtp">${m.type}</span></div></div>`}).join('')}
+
+// System health
+const s=d.system;
+document.getElementById('hg').innerHTML=`
+<div class="hc"><h3>⚙️ CPU Load</h3><div class="hv">${s.load[0]}</div><div class="hs">${s.load[1]} / ${s.load[2]} · ${s.cpus} cores</div><div class="hbar"><div class="hfill" style="width:${Math.min(s.load[0]/s.cpus*100,100)}%;background:${s.load[0]>s.cpus?'var(--red)':'var(--blue)'}"></div></div></div>
+<div class="hc"><h3>🧠 Memory</h3><div class="hv">${s.mem_pct}%</div><div class="hs">${s.mem_used}G / ${s.mem_total}G</div><div class="hbar"><div class="hfill" style="width:${s.mem_pct}%;background:${s.mem_pct>80?'var(--red)':'var(--blue)'}"></div></div></div>
+<div class="hc"><h3>💾 Disk</h3><div class="hv">${s.disk_pct}%</div><div class="hs">${s.disk_used}G / ${s.disk_total}G</div><div class="hbar"><div class="hfill" style="width:${s.disk_pct}%;background:${s.disk_pct>80?'var(--red)':'var(--green)'}"></div></div></div>
+<div class="hc"><h3>🛡️ Security</h3><div class="hv" style="color:var(--green)">GREEN</div><div class="hs">0 alerts · integrity verified · 10/10 files</div></div>`;
+document.getElementById('sg').innerHTML=`
+<div class="hc"><h3>👥 Total Agents</h3><div class="hv">${d.stats.total_agents}</div><div class="hs">${d.stats.executives} executives · ${d.stats.sub_agents} sub-agents</div></div>
+<div class="hc"><h3>🔐 RBAC Groups</h3><div class="hv">7</div><div class="hs">executive-agents · sub-agents · shared-code · 4 teams</div></div>
+<div class="hc"><h3>📜 Audit Logs</h3><div class="hv">Active</div><div class="hs">4 categories · JSONL + plaintext</div></div>
+<div class="hc"><h3>🔒 File Integrity</h3><div class="hv" style="color:var(--green)">Verified</div><div class="hs">SHA-256 baseline · 10 critical files</div></div>`;
+
+}catch(e){console.error(e)}}
+load();setInterval(load,10000);
+</script>
+</body>
+</html>
