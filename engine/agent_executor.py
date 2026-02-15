@@ -230,7 +230,7 @@ You are executing a task within the AgentOS multi-agent system.
 4. Be thorough but efficient — minimize unnecessary tool calls
 5. IMPORTANT: You MUST call report_result when finished. This is how your work gets recorded.
 6. If you have enough information, stop gathering and call report_result immediately.
-7. Maximum {max_iter} tool calls allowed — plan accordingly.
+7. Maximum {self.max_iterations} tool calls allowed — plan accordingly.
 {task_context}"""
     
     def _execute_tool(self, name: str, args: dict) -> str:
@@ -302,7 +302,7 @@ You are executing a task within the AgentOS multi-agent system.
             return f"Tool error ({name}): {str(e)}"
     
     def run(self, task: str, task_type: Optional[str] = None, 
-            model: Optional[str] = None) -> dict:
+            model: Optional[str] = None, project: Optional[str] = None) -> dict:
         """
         Execute a task as this agent.
         
@@ -313,21 +313,27 @@ You are executing a task within the AgentOS multi-agent system.
             "result": str,
             "iterations": int,
             "model_used": str,
-            "log": list
+            "log": list,
+            "project": str
         }
         """
         # Build fallback chain
         chain = self.llm.get_fallback_chain(task=task_type or "agentic", needs_tools=True)
         model_info = chain[0] if chain else {"id": "openrouter/free", "name": "Free Router"}
         
-        system = self._build_system_prompt()
+        project_context = ""
+        if project and project != "default":
+            project_context = f"\n## Project Context\nYou are working within the **{project}** project. Keep all work scoped to this project context.\n"
+        
+        system = self._build_system_prompt(task_context=project_context)
         messages = [
             {"role": "system", "content": system},
             {"role": "user", "content": f"## Task\n{task}\n\nBegin working on this task. Use tools as needed. You MUST call report_result when done — this is mandatory."}
         ]
         
         self.log = []
-        result = {"agent": self.agent_name, "task": task, "model_used": model_info["name"]}
+        result = {"agent": self.agent_name, "task": task, "model_used": model_info["name"],
+                  "project": project or "default"}
         
         for iteration in range(self.max_iterations):
             # Call LLM with fallback
@@ -436,53 +442,71 @@ def init_queue():
         model TEXT,
         result TEXT,
         started TEXT,
-        completed TEXT
+        completed TEXT,
+        project TEXT DEFAULT 'default'
     )""")
+    # Migration: add project column if missing (for existing DBs)
+    try:
+        db.execute("ALTER TABLE tasks ADD COLUMN project TEXT DEFAULT 'default'")
+    except:
+        pass  # Column already exists
     db.commit()
     db.close()
 
 def enqueue_task(title: str, description: str, assigned_to: str,
                  task_type: str = "general", priority: str = "MEDIUM",
-                 assigned_by: str = "jarvis", model: str = None) -> str:
+                 assigned_by: str = "jarvis", model: str = None,
+                 project: str = "default") -> str:
     """Add a task to the queue. Returns task ID."""
     import uuid
     task_id = str(uuid.uuid4())[:8]
     db = sqlite3.connect(QUEUE_DB)
     db.execute(
-        "INSERT INTO tasks (id, assigned_to, assigned_by, task_type, priority, title, description, model) VALUES (?,?,?,?,?,?,?,?)",
-        (task_id, assigned_to, assigned_by, task_type, priority, title, description, model)
+        "INSERT INTO tasks (id, assigned_to, assigned_by, task_type, priority, title, description, model, project) VALUES (?,?,?,?,?,?,?,?,?)",
+        (task_id, assigned_to, assigned_by, task_type, priority, title, description, model, project or "default")
     )
     db.commit()
     db.close()
     return task_id
 
-def process_next_task(agent_name: str) -> Optional[dict]:
+def process_next_task(agent_name: str, project: str = None) -> Optional[dict]:
     """Pick up and execute the next pending task for an agent."""
     db = sqlite3.connect(QUEUE_DB)
     db.row_factory = sqlite3.Row
     
-    # Get next pending task
-    row = db.execute(
-        "SELECT * FROM tasks WHERE assigned_to=? AND status='pending' ORDER BY CASE priority WHEN 'CRITICAL' THEN 0 WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 ELSE 3 END, created ASC LIMIT 1",
-        (agent_name,)
-    ).fetchone()
+    # Get next pending task, optionally filtered by project
+    query = "SELECT * FROM tasks WHERE assigned_to=? AND status='pending'"
+    params = [agent_name]
+    if project:
+        query += " AND project=?"
+        params.append(project)
+    query += " ORDER BY CASE priority WHEN 'CRITICAL' THEN 0 WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 ELSE 3 END, created ASC LIMIT 1"
+    
+    row = db.execute(query, params).fetchone()
     
     if not row:
         db.close()
         return None
     
     task_id = row["id"]
+    task_project = row["project"] or "default"
     
     # Mark as active
     db.execute("UPDATE tasks SET status='active', started=CURRENT_TIMESTAMP WHERE id=?", (task_id,))
     db.commit()
     
+    # Build task description with project context
+    task_desc = f"{row['title']}\n\n{row['description']}"
+    if task_project != "default":
+        task_desc = f"[Project: {task_project}]\n\n{task_desc}"
+    
     # Execute
     executor = AgentExecutor(agent_name)
     result = executor.run(
-        task=f"{row['title']}\n\n{row['description']}",
+        task=task_desc,
         task_type=row["task_type"],
-        model=row["model"]
+        model=row["model"],
+        project=task_project
     )
     
     # Update with result
@@ -495,7 +519,7 @@ def process_next_task(agent_name: str) -> Optional[dict]:
     
     return result
 
-def list_tasks(status: str = None, agent: str = None) -> list:
+def list_tasks(status: str = None, agent: str = None, project: str = None) -> list:
     """List tasks, optionally filtered."""
     db = sqlite3.connect(QUEUE_DB)
     db.row_factory = sqlite3.Row
@@ -507,13 +531,42 @@ def list_tasks(status: str = None, agent: str = None) -> list:
     if agent:
         query += " AND assigned_to=?"
         params.append(agent)
+    if project:
+        query += " AND project=?"
+        params.append(project)
     query += " ORDER BY created DESC LIMIT 50"
     rows = db.execute(query, params).fetchall()
     db.close()
     return [dict(r) for r in rows]
 
+def list_task_projects() -> list:
+    """List unique projects from the task queue."""
+    db = sqlite3.connect(QUEUE_DB)
+    try:
+        rows = db.execute("SELECT DISTINCT project FROM tasks WHERE project IS NOT NULL").fetchall()
+        db.close()
+        return sorted(set(r[0] for r in rows if r[0]))
+    except:
+        db.close()
+        return ["default"]
+
 
 # ── CLI ──────────────────────────────────────────────────────────────────
+
+def _extract_flag(args, flag, default=None):
+    """Extract --flag value from args list."""
+    remaining = []
+    value = default
+    i = 0
+    while i < len(args):
+        if args[i] == flag and i + 1 < len(args):
+            value = args[i + 1]
+            i += 2
+        else:
+            remaining.append(args[i])
+            i += 1
+    return value, remaining
+
 
 if __name__ == "__main__":
     init_queue()
@@ -523,17 +576,17 @@ if __name__ == "__main__":
 AgentOS Executor — Give agents brains.
 
 Usage:
-  python3 agent_executor.py run <agent> <task> [--type TYPE] [--model MODEL]
-  python3 agent_executor.py queue <agent> <title> <description> [--type TYPE] [--priority PRI]
-  python3 agent_executor.py process <agent>
-  python3 agent_executor.py list [--status STATUS] [--agent AGENT]
+  python3 agent_executor.py run <agent> <task> [--type TYPE] [--model MODEL] [--project PROJECT]
+  python3 agent_executor.py queue <agent> <title> <description> [--type TYPE] [--priority PRI] [--project PROJECT]
+  python3 agent_executor.py process <agent> [--project PROJECT]
+  python3 agent_executor.py list [--status STATUS] [--agent AGENT] [--project PROJECT]
   python3 agent_executor.py models
   
 Examples:
   python3 agent_executor.py run tesla "Check the git status of the shared repo"
-  python3 agent_executor.py queue warren "Q4 Report" "Analyze Q4 financials" --type financial
-  python3 agent_executor.py process warren
-  python3 agent_executor.py list --status pending
+  python3 agent_executor.py queue warren "Q4 Report" "Analyze Q4 financials" --type financial --project acme-corp
+  python3 agent_executor.py process warren --project acme-corp
+  python3 agent_executor.py list --status pending --project acme-corp
 """)
         sys.exit(0)
     
@@ -548,21 +601,19 @@ Examples:
     
     elif cmd == "run" and len(sys.argv) >= 4:
         agent = sys.argv[2]
-        task = sys.argv[3]
-        task_type = None
-        model = None
-        for i, arg in enumerate(sys.argv[4:]):
-            if arg == "--type" and i + 5 < len(sys.argv):
-                task_type = sys.argv[i + 5]
-            if arg == "--model" and i + 5 < len(sys.argv):
-                model = sys.argv[i + 5]
+        remaining = sys.argv[3:]
+        task_type, remaining = _extract_flag(remaining, "--type")
+        model, remaining = _extract_flag(remaining, "--model")
+        project, remaining = _extract_flag(remaining, "--project")
+        task = remaining[0] if remaining else sys.argv[3]
         
-        print(f"Executing as {agent}...")
+        print(f"Executing as {agent}..." + (f" (project: {project})" if project else ""))
         executor = AgentExecutor(agent)
-        result = executor.run(task, task_type=task_type, model=model)
+        result = executor.run(task, task_type=task_type, model=model, project=project)
         print(f"\nStatus: {result['status']}")
         print(f"Model: {result['model_used']}")
         print(f"Iterations: {result['iterations']}")
+        print(f"Project: {result.get('project', 'default')}")
         print(f"Result:\n{result.get('result', '')}")
         if result.get("log"):
             print(f"\nTool calls: {len(result['log'])}")
@@ -570,16 +621,19 @@ Examples:
                 print(f"  [{entry['iteration']}] {entry['tool']}({json.dumps(entry['args'])[:80]})")
     
     elif cmd == "queue" and len(sys.argv) >= 5:
+        remaining = sys.argv[4:]
+        project, remaining = _extract_flag(remaining, "--project")
         agent = sys.argv[2]
         title = sys.argv[3]
-        desc = sys.argv[4]
-        task_id = enqueue_task(title, desc, agent)
-        print(f"Task {task_id} queued for {agent}: {title}")
+        desc = remaining[0] if remaining else sys.argv[4]
+        task_id = enqueue_task(title, desc, agent, project=project or "default")
+        print(f"Task {task_id} queued for {agent}: {title} (project: {project or 'default'})")
     
     elif cmd == "process" and len(sys.argv) >= 3:
         agent = sys.argv[2]
-        print(f"Processing next task for {agent}...")
-        result = process_next_task(agent)
+        project, _ = _extract_flag(sys.argv[3:], "--project")
+        print(f"Processing next task for {agent}..." + (f" (project: {project})" if project else ""))
+        result = process_next_task(agent, project=project)
         if result:
             print(f"Completed: {result['status']}")
             print(f"Result: {result.get('result', '')}")
@@ -587,16 +641,15 @@ Examples:
             print("No pending tasks.")
     
     elif cmd == "list":
-        status = None
-        agent = None
-        for i, arg in enumerate(sys.argv[2:]):
-            if arg == "--status" and i + 3 < len(sys.argv):
-                status = sys.argv[i + 3]
-            if arg == "--agent" and i + 3 < len(sys.argv):
-                agent = sys.argv[i + 3]
-        tasks = list_tasks(status=status, agent=agent)
+        remaining = sys.argv[2:]
+        status, remaining = _extract_flag(remaining, "--status")
+        agent, remaining = _extract_flag(remaining, "--agent")
+        project, remaining = _extract_flag(remaining, "--project")
+        tasks = list_tasks(status=status, agent=agent, project=project)
         if tasks:
             for t in tasks:
-                print(f"  [{t['id']}] {t['status']:10s} {t['assigned_to']:20s} {t['priority']:8s} {t['title']}")
+                proj = t.get('project', 'default')
+                proj_tag = f" [{proj}]" if proj and proj != "default" else ""
+                print(f"  [{t['id']}] {t['status']:10s} {t['assigned_to']:20s} {t['priority']:8s} {t['title']}{proj_tag}")
         else:
             print("No tasks found.")

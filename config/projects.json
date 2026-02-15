@@ -1,0 +1,11 @@
+{
+  "projects": [
+    {
+      "id": "default",
+      "name": "General",
+      "description": "Default project for untagged tasks",
+      "color": "#3b82f6"
+    }
+  ],
+  "active_project": "default"
+}

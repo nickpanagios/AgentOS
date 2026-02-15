@@ -5,17 +5,19 @@ Orchestrator — Jarvis's task dispatch brain.
 Takes a high-level directive, breaks it into subtasks, routes to the right
 agents based on specialization, monitors progress, and consolidates results.
 
+Supports project namespacing: all operations can be scoped to a project.
+
 Usage:
     from orchestrator import Orchestrator
     orch = Orchestrator()
     
-    # Dispatch a directive
-    results = orch.dispatch("Prepare a full market analysis for entering the healthcare AI space")
+    # Dispatch a directive within a project
+    results = orch.dispatch("Prepare Q2 analysis", project="acme-corp")
     
     # Or step by step
-    plan = orch.plan("Prepare a full market analysis for healthcare AI")
-    results = orch.execute_plan(plan)
-    summary = orch.consolidate(results)
+    plan = orch.plan("Prepare a full market analysis for healthcare AI", project="personal")
+    results = orch.execute_plan(plan, project="personal")
+    summary = orch.consolidate("...", results, project="personal")
 """
 
 import json
@@ -70,7 +72,7 @@ AGENT_CAPABILITIES = {
 PLANNING_PROMPT = """You are Jarvis, the Chief Operating Officer of a multi-agent AI organization.
 You must decompose a directive into concrete subtasks and assign each to the most appropriate agent.
 
-Available agents and their capabilities:
+{project_context}Available agents and their capabilities:
 {agents}
 
 RULES:
@@ -99,7 +101,7 @@ Respond in EXACT JSON format:
 
 CONSOLIDATION_PROMPT = """You are Jarvis. Consolidate these results from your team into a clear executive summary.
 
-Directive: {directive}
+{project_context}Directive: {directive}
 
 Results:
 {results}
@@ -118,26 +120,28 @@ class Orchestrator:
         self.llm = LLMClient()
         init_queue()
 
-    def plan(self, directive: str) -> dict:
+    def plan(self, directive: str, project: str = None) -> dict:
         """Break a directive into subtasks with agent assignments."""
         agents_desc = "\n".join(
             f"  - {name}: {', '.join(caps)}"
             for name, caps in sorted(AGENT_CAPABILITIES.items())
         )
         
-        system = PLANNING_PROMPT.format(agents=agents_desc)
+        project_context = ""
+        if project and project != "default":
+            project_context = f"**Project Context:** You are planning within the '{project}' project. All tasks should be scoped to this project.\n\n"
+        
+        system = PLANNING_PROMPT.format(agents=agents_desc, project_context=project_context)
         response = self.llm.chat(directive, system=system, task="reasoning", temperature=0.3)
         
         # Parse JSON from response
         try:
-            # Try to extract JSON from response
             if "```json" in response:
                 response = response.split("```json")[1].split("```")[0]
             elif "```" in response:
                 response = response.split("```")[1].split("```")[0]
             plan = json.loads(response.strip())
         except json.JSONDecodeError:
-            # If parsing fails, create a simple single-task plan
             plan = {
                 "plan_summary": "Direct execution",
                 "subtasks": [{
@@ -152,33 +156,35 @@ class Orchestrator:
                 }]
             }
         
+        if project:
+            plan["project"] = project
         return plan
 
-    def execute_plan(self, plan: dict, parallel: bool = False) -> List[dict]:
+    def execute_plan(self, plan: dict, parallel: bool = False, project: str = None) -> List[dict]:
         """Execute all subtasks in a plan. Returns list of results."""
         results = []
         completed_ids = set()
         subtasks = plan.get("subtasks", [])
+        proj = project or plan.get("project", "default")
         
-        # Sort by dependency order (tasks with no deps first)
         remaining = list(subtasks)
         
         while remaining:
-            # Find tasks whose dependencies are met
             ready = [t for t in remaining if all(d in completed_ids for d in t.get("depends_on", []))]
             
             if not ready:
-                # Circular dependency or error — just run everything remaining
                 ready = remaining
             
             for task in ready:
                 agent = task["assigned_to"]
-                print(f"  [{task['id']}] Dispatching to {agent}: {task['title']}")
+                proj_tag = f" [{proj}]" if proj and proj != "default" else ""
+                print(f"  [{task['id']}] Dispatching to {agent}{proj_tag}: {task['title']}")
                 
                 executor = AgentExecutor(agent)
                 result = executor.run(
                     task=f"{task['title']}\n\n{task['description']}",
-                    task_type=task.get("task_type", "general")
+                    task_type=task.get("task_type", "general"),
+                    project=proj
                 )
                 result["task_id"] = task["id"]
                 result["title"] = task["title"]
@@ -191,7 +197,7 @@ class Orchestrator:
         
         return results
 
-    def consolidate(self, directive: str, results: List[dict]) -> str:
+    def consolidate(self, directive: str, results: List[dict], project: str = None) -> str:
         """Consolidate results into an executive summary."""
         results_text = "\n\n".join(
             f"### Task {r.get('task_id', '?')}: {r.get('title', 'Unknown')} (Agent: {r['agent']})\n"
@@ -200,29 +206,28 @@ class Orchestrator:
             for r in results
         )
         
-        system = CONSOLIDATION_PROMPT.format(directive=directive, results=results_text)
+        project_context = ""
+        if project and project != "default":
+            project_context = f"**Project:** {project}\n\n"
+        
+        system = CONSOLIDATION_PROMPT.format(
+            directive=directive, results=results_text, project_context=project_context)
         return self.llm.chat("Consolidate these results.", system=system, task="summarization")
 
-    def dispatch(self, directive: str, dry_run: bool = False) -> dict:
+    def dispatch(self, directive: str, dry_run: bool = False, project: str = None) -> dict:
         """
         Full pipeline: plan → execute → consolidate.
-        
-        Returns: {
-            "directive": str,
-            "plan": dict,
-            "results": list,
-            "summary": str,
-            "total_iterations": int,
-            "agents_used": list
-        }
         """
+        proj = project or "default"
+        proj_tag = f" [{proj}]" if proj != "default" else ""
+        
         print(f"\n{'='*60}")
-        print(f"DIRECTIVE: {directive}")
+        print(f"DIRECTIVE{proj_tag}: {directive}")
         print(f"{'='*60}")
         
         # Plan
         print("\n📋 Planning...")
-        plan = self.plan(directive)
+        plan = self.plan(directive, project=proj)
         print(f"  Plan: {plan.get('plan_summary', 'N/A')}")
         print(f"  Subtasks: {len(plan.get('subtasks', []))}")
         
@@ -231,15 +236,15 @@ class Orchestrator:
             print(f"    [{t['id']}] {t['assigned_to']:20s} → {t['title']}{deps}")
         
         if dry_run:
-            return {"directive": directive, "plan": plan, "results": [], "summary": "DRY RUN"}
+            return {"directive": directive, "plan": plan, "results": [], "summary": "DRY RUN", "project": proj}
         
         # Execute
         print("\n🚀 Executing...")
-        results = self.execute_plan(plan)
+        results = self.execute_plan(plan, project=proj)
         
         # Consolidate
         print("\n📊 Consolidating...")
-        summary = self.consolidate(directive, results)
+        summary = self.consolidate(directive, results, project=proj)
         
         total_iters = sum(r.get("iterations", 0) for r in results)
         agents_used = list(set(r["agent"] for r in results))
@@ -250,7 +255,8 @@ class Orchestrator:
             "results": results,
             "summary": summary,
             "total_iterations": total_iters,
-            "agents_used": agents_used
+            "agents_used": agents_used,
+            "project": proj
         }
         
         # Save to log
@@ -263,13 +269,14 @@ class Orchestrator:
             logs.append({
                 "timestamp": datetime.utcnow().isoformat(),
                 "directive": directive,
+                "project": proj,
                 "agents": agents_used,
                 "tasks": len(plan.get("subtasks", [])),
                 "iterations": total_iters,
                 "status": "completed"
             })
             with open(log_path, "w") as f:
-                json.dump(logs[-50:], f, indent=2)  # Keep last 50
+                json.dump(logs[-50:], f, indent=2)
         except:
             pass
         
@@ -277,13 +284,14 @@ class Orchestrator:
         print(f"SUMMARY")
         print(f"{'='*60}")
         print(summary)
-        print(f"\nAgents: {', '.join(agents_used)} | Iterations: {total_iters}")
+        print(f"\nProject: {proj} | Agents: {', '.join(agents_used)} | Iterations: {total_iters}")
         
         return output
 
-    def queue_directive(self, directive: str) -> dict:
+    def queue_directive(self, directive: str, project: str = None) -> dict:
         """Plan and queue subtasks (don't execute immediately)."""
-        plan = self.plan(directive)
+        proj = project or "default"
+        plan = self.plan(directive, project=proj)
         task_ids = []
         
         for t in plan.get("subtasks", []):
@@ -292,15 +300,31 @@ class Orchestrator:
                 description=t["description"],
                 assigned_to=t["assigned_to"],
                 task_type=t.get("task_type", "general"),
-                priority=t.get("priority", "MEDIUM")
+                priority=t.get("priority", "MEDIUM"),
+                project=proj
             )
             task_ids.append(tid)
-            print(f"  Queued [{tid}] → {t['assigned_to']}: {t['title']}")
+            print(f"  Queued [{tid}] → {t['assigned_to']}: {t['title']} (project: {proj})")
         
-        return {"plan": plan, "task_ids": task_ids}
+        return {"plan": plan, "task_ids": task_ids, "project": proj}
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────
+
+def _extract_flag(args, flag, default=None):
+    """Extract --flag value from args list."""
+    remaining = []
+    value = default
+    i = 0
+    while i < len(args):
+        if args[i] == flag and i + 1 < len(args):
+            value = args[i + 1]
+            i += 2
+        else:
+            remaining.append(args[i])
+            i += 1
+    return value, remaining
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -308,50 +332,56 @@ if __name__ == "__main__":
 Orchestrator — Jarvis's command center.
 
 Usage:
-  python3 orchestrator.py dispatch "Your directive here"
-  python3 orchestrator.py plan "Your directive here"        # Plan only (dry run)
-  python3 orchestrator.py queue "Your directive here"       # Plan + queue (no execute)
-  python3 orchestrator.py process <agent>                   # Process queued tasks for agent
-  python3 orchestrator.py status                            # Show queue status
+  python3 orchestrator.py dispatch "Your directive here" [--project PROJECT]
+  python3 orchestrator.py plan "Your directive here" [--project PROJECT]
+  python3 orchestrator.py queue "Your directive here" [--project PROJECT]
+  python3 orchestrator.py process <agent> [--project PROJECT]
+  python3 orchestrator.py status [--project PROJECT]
 
 Examples:
-  python3 orchestrator.py dispatch "Analyze our current security posture and write a report"
+  python3 orchestrator.py dispatch --project "acme-corp" "Prepare Q2 financial analysis"
+  python3 orchestrator.py dispatch --project "personal" "Research best CRM tools"
   python3 orchestrator.py plan "Build a landing page for our new AI product"
-  python3 orchestrator.py queue "Prepare quarterly financial projections"
+  python3 orchestrator.py queue "Prepare quarterly financial projections" --project acme-corp
 """)
         sys.exit(0)
     
     cmd = sys.argv[1]
+    remaining = sys.argv[2:]
+    project, remaining = _extract_flag(remaining, "--project")
+    
     orch = Orchestrator()
     
-    if cmd == "dispatch" and len(sys.argv) >= 3:
-        directive = " ".join(sys.argv[2:])
-        result = orch.dispatch(directive)
+    if cmd == "dispatch" and remaining:
+        directive = " ".join(remaining)
+        result = orch.dispatch(directive, project=project)
     
-    elif cmd == "plan" and len(sys.argv) >= 3:
-        directive = " ".join(sys.argv[2:])
-        result = orch.dispatch(directive, dry_run=True)
+    elif cmd == "plan" and remaining:
+        directive = " ".join(remaining)
+        result = orch.dispatch(directive, dry_run=True, project=project)
     
-    elif cmd == "queue" and len(sys.argv) >= 3:
-        directive = " ".join(sys.argv[2:])
-        result = orch.queue_directive(directive)
-        print(f"\n{len(result['task_ids'])} tasks queued.")
+    elif cmd == "queue" and remaining:
+        directive = " ".join(remaining)
+        result = orch.queue_directive(directive, project=project)
+        print(f"\n{len(result['task_ids'])} tasks queued (project: {result['project']}).")
     
-    elif cmd == "process" and len(sys.argv) >= 3:
-        agent = sys.argv[2]
-        result = process_next_task(agent)
+    elif cmd == "process" and remaining:
+        agent = remaining[0]
+        result = process_next_task(agent, project=project)
         if result:
             print(json.dumps(result, indent=2, default=str))
         else:
-            print(f"No pending tasks for {agent}")
+            print(f"No pending tasks for {agent}" + (f" in project {project}" if project else ""))
     
     elif cmd == "status":
         for status in ["pending", "active", "completed", "failed"]:
-            tasks = list_tasks(status=status)
+            tasks = list_tasks(status=status, project=project)
             if tasks:
-                print(f"\n{status.upper()} ({len(tasks)}):")
+                proj_filter = f" (project: {project})" if project else ""
+                print(f"\n{status.upper()} ({len(tasks)}){proj_filter}:")
                 for t in tasks:
-                    print(f"  [{t['id']}] {t['assigned_to']:20s} {t['priority']:8s} {t['title']}")
+                    proj_tag = f" [{t.get('project','default')}]" if not project else ""
+                    print(f"  [{t['id']}] {t['assigned_to']:20s} {t['priority']:8s} {t['title']}{proj_tag}")
     
     else:
         print(f"Unknown command: {cmd}")

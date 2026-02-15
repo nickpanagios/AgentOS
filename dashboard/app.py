@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Multi-Agent System — Command Center v3 (Days 11-14 Final)"""
+"""Multi-Agent System — Command Center v3 (with Project Namespacing)"""
 
-import json, os, glob, subprocess, hashlib
+import json, os, glob, subprocess, hashlib, sqlite3
 from datetime import datetime
 from flask import Flask, render_template, jsonify, request
 
 app = Flask(__name__)
 EXEC_WORKSPACE = "/home/executive-workspace"
+QUEUE_DB = "/home/executive-workspace/engine/task_queue.db"
 
 EXECUTIVES = {
     "jarvis": {"role":"COO/CPO/CSO/CCO","title":"Central Executive","color":"#3b82f6","emoji":"🤖",
@@ -69,12 +70,34 @@ def count_files(pattern):
     try: return len(glob.glob(pattern))
     except: return 0
 
-def get_tasks():
+def get_tasks(project=None):
     tasks = []
     for state in ["pending","active","completed"]:
         for f in glob.glob(f"{EXEC_WORKSPACE}/tasks/{state}/*.json"):
             data = read_json(f)
-            if data: data["state"]=state; tasks.append(data)
+            if data:
+                data["state"]=state
+                if project and data.get("project", "default") != project:
+                    continue
+                tasks.append(data)
+    # Also get tasks from SQLite queue
+    try:
+        db = sqlite3.connect(QUEUE_DB)
+        db.row_factory = sqlite3.Row
+        query = "SELECT * FROM tasks ORDER BY created DESC LIMIT 50"
+        params = []
+        if project:
+            query = "SELECT * FROM tasks WHERE project=? ORDER BY created DESC LIMIT 50"
+            params = [project]
+        for row in db.execute(query, params).fetchall():
+            r = dict(row)
+            r["state"] = r.get("status", "pending")
+            r["name"] = r.get("title", r.get("id", ""))
+            if project and r.get("project", "default") != project:
+                continue
+            tasks.append(r)
+        db.close()
+    except: pass
     return tasks
 
 def get_all_messages(limit=50):
@@ -113,9 +136,7 @@ def get_system_health():
     except Exception as e: return {"error":str(e)}
 
 def get_security_summary():
-    """Run lightweight security checks"""
     results = {"integrity":"PASS","world_readable":0,"alerts":0,"last_scan":"","groups":7}
-    # Check integrity baseline
     baseline = f"{EXEC_WORKSPACE}/security/integrity_baseline.json"
     bl = read_json(baseline)
     if bl:
@@ -128,7 +149,6 @@ def get_security_summary():
             except: fails += 1
         results["integrity"] = "PASS" if fails == 0 else f"FAIL ({fails} files)"
         results["files_checked"] = len(bl)
-    # Check audit log counts
     for cat in ["access","communication","security","system"]:
         log = f"{EXEC_WORKSPACE}/audit/{cat}.log"
         try:
@@ -138,7 +158,6 @@ def get_security_summary():
     return results
 
 def get_agent_tools(agent):
-    """Check what tools are available for an agent"""
     venv = f"/home/{agent}/venv"
     tools = []
     try:
@@ -153,6 +172,34 @@ def get_agent_tools(agent):
     except: pass
     return tools
 
+def get_all_projects():
+    """Get all known projects from task queue and knowledge base."""
+    projects = set(["default"])
+    # From SQLite task queue
+    try:
+        db = sqlite3.connect(QUEUE_DB)
+        rows = db.execute("SELECT DISTINCT project FROM tasks WHERE project IS NOT NULL").fetchall()
+        for r in rows:
+            if r[0]: projects.add(r[0])
+        db.close()
+    except: pass
+    # From projects.json config
+    try:
+        cfg = read_json(f"{EXEC_WORKSPACE}/config/projects.json")
+        if cfg and "projects" in cfg:
+            for p in cfg["projects"]:
+                projects.add(p["id"])
+    except: pass
+    # From knowledge base
+    try:
+        sys.path.insert(0, f"{EXEC_WORKSPACE}/knowledge")
+        from knowledge_client import KnowledgeBase
+        kb = KnowledgeBase()
+        for p in kb.list_projects():
+            projects.add(p)
+    except: pass
+    return sorted(projects)
+
 # ── Routes ──────────────────────────────────────────────────
 
 @app.route('/')
@@ -161,6 +208,10 @@ def index():
 
 @app.route('/api/data')
 def api_data():
+    project = request.args.get('project')
+    if project == 'all' or project == '':
+        project = None
+    
     execs = {}
     for name, info in EXECUTIVES.items():
         st = get_agent_status(name)
@@ -175,12 +226,31 @@ def api_data():
                 "configured":all([os.path.exists(f"/home/{agent}/venv/bin/python3"),
                     os.path.exists(f"/home/{agent}/member/prompt.md"),
                     os.path.exists(f"/home/{agent}/.agent_env")])}
-    return jsonify({"executives":execs,"sub_agents":sub_agents,"tasks":get_tasks(),
+    return jsonify({"executives":execs,"sub_agents":sub_agents,"tasks":get_tasks(project=project),
         "messages":get_all_messages(30),"system":get_system_health(),
         "stats":{"total_agents":25,"executives":5,"sub_agents":20,
             "active":sum(1 for n in EXECUTIVES if get_agent_status(n).get("status")=="online"),
             "configured":sum(1 for sa in sub_agents.values() if sa["configured"])},
         "ts":datetime.utcnow().isoformat()+"Z"})
+
+@app.route('/api/projects')
+def api_projects():
+    """Return all known projects with metadata."""
+    project_ids = get_all_projects()
+    # Load config for colors/names
+    cfg = read_json(f"{EXEC_WORKSPACE}/config/projects.json") or {"projects": []}
+    cfg_map = {p["id"]: p for p in cfg.get("projects", [])}
+    
+    projects = []
+    for pid in project_ids:
+        info = cfg_map.get(pid, {})
+        projects.append({
+            "id": pid,
+            "name": info.get("name", pid.replace("-", " ").title()),
+            "description": info.get("description", ""),
+            "color": info.get("color", "#3b82f6")
+        })
+    return jsonify({"projects": projects, "active": cfg.get("active_project", "default")})
 
 @app.route('/api/security')
 def api_security():
@@ -188,7 +258,6 @@ def api_security():
 
 @app.route('/api/agent/<name>')
 def api_agent(name):
-    """Detailed agent info"""
     info = EXECUTIVES.get(name) or {}
     for team, agents in TEAMS.items():
         if name in agents: info = {**agents[name], "team":team, "executive":team}; break
@@ -214,7 +283,6 @@ def api_team(team):
 
 @app.route('/api/audit')
 def api_audit():
-    """Recent audit log entries"""
     entries = []
     for cat in ["access","communication","security","system"]:
         log = f"{EXEC_WORKSPACE}/audit/{cat}.log"
@@ -227,7 +295,6 @@ def api_audit():
 
 @app.route('/api/health')
 def api_health():
-    """Simple health check endpoint"""
     return jsonify({"status":"ok","ts":datetime.utcnow().isoformat()+"Z",
         "agents":25,"uptime":"active"})
 

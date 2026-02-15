@@ -12,6 +12,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* ── Nav ── */
 .nav{display:flex;align-items:center;gap:6px;padding:12px 24px;background:var(--bg-1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
 .nav-logo{font-size:1.2rem;font-weight:700;margin-right:16px}.nav-logo span{color:var(--blue)}
+
+/* Project selector */
+.project-select{background:var(--bg-2);border:1px solid var(--border);border-radius:6px;color:var(--t1);font-size:.78rem;padding:5px 10px;margin-right:12px;cursor:pointer;outline:none;font-family:inherit}
+.project-select:hover{border-color:var(--border-h)}.project-select:focus{border-color:var(--blue)}
+.project-select option{background:var(--bg-1);color:var(--t1)}
+
 .nav-tab{padding:6px 14px;border-radius:6px;font-size:.8rem;cursor:pointer;color:var(--t2);transition:all .2s;background:0;border:0;font-family:inherit}
 .nav-tab:hover{color:var(--t1);background:var(--bg-2)}.nav-tab.active{color:var(--t1);background:var(--blue)}
 .nav-spacer{flex:1}.nav-status{font-size:.75rem;color:var(--t3)}
@@ -79,6 +85,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tbg{padding:3px 10px;border-radius:5px;font-size:.68rem;font-weight:600}
 .tbg-pending{background:#422006;color:var(--yellow)}.tbg-active{background:#052e16;color:var(--green)}.tbg-completed{background:#1e1b4b;color:var(--purple)}
 .tds{font-size:.82rem;color:var(--t2);margin-top:8px;line-height:1.5}
+.tproj{padding:2px 8px;border-radius:4px;font-size:.62rem;font-weight:600;background:var(--bg-3);color:var(--cyan)}
 
 /* ── Comms ── */
 .mf{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow-y:auto;padding:4px}
@@ -108,6 +115,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 <div class="nav">
   <div class="nav-logo">🤖 <span>AgentOS</span></div>
+  <select class="project-select" id="project-select" title="Filter by project">
+    <option value="all">📁 All Projects</option>
+  </select>
   <button class="nav-tab active" data-page="org">📋 Org Chart</button>
   <button class="nav-tab" data-page="tasks">📝 Task Manager</button>
   <button class="nav-tab" data-page="comms">💬 Comms Log</button>
@@ -159,7 +169,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="page" id="page-system"><div class="stit">⚡ System Health</div><div class="hg" id="hg"></div><div style="margin-top:28px"><div class="stit">🔒 Security & Audit</div><div class="hg" id="sg"></div></div></div>
 
 <script>
+// Tab navigation
 document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));t.classList.add('active');document.getElementById('page-'+t.dataset.page).classList.add('active')})});
+
+// Project selector
+const projSel=document.getElementById('project-select');
+const savedProj=localStorage.getItem('agentos-project')||'all';
+projSel.value=savedProj;
+projSel.addEventListener('change',()=>{localStorage.setItem('agentos-project',projSel.value);load()});
+
+// Load projects list
+async function loadProjects(){
+  try{
+    const r=await(await fetch('/api/projects')).json();
+    const opts=['<option value="all">📁 All Projects</option>'];
+    for(const p of r.projects){
+      opts.push(`<option value="${p.id}">${p.name}</option>`);
+    }
+    projSel.innerHTML=opts.join('');
+    projSel.value=localStorage.getItem('agentos-project')||'all';
+  }catch(e){}
+}
+loadProjects();
 
 function tog(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('open')}
 const C={jarvis:'#3b82f6',tesla:'#8b5cf6',warren:'#10b981',steve:'#f59e0b',tony:'#ef4444'};
@@ -168,7 +199,9 @@ function ini(n){return n.split('-').map(w=>w[0].toUpperCase()).join('').slice(0,
 
 async function load(){
 try{
-const d=await(await fetch('/api/data')).json();
+const proj=projSel.value;
+const qs=proj&&proj!=='all'?`?project=${encodeURIComponent(proj)}`:'';
+const d=await(await fetch('/api/data'+qs)).json();
 document.getElementById('ns').textContent=`${d.stats.active} online · ${d.stats.total_agents} agents · ${new Date(d.ts).toLocaleTimeString()}`;
 
 // Stats bar
@@ -178,15 +211,13 @@ document.getElementById('sb').innerHTML=[
 {v:d.stats.sub_agents,l:'Sub-Agents',c:'var(--purple)'}
 ].map(s=>`<div class="stat-card"><div class="stat-value" style="color:${s.c}">${s.v}</div><div class="stat-label">${s.l}</div></div>`).join('');
 
-// Department columns — each exec + their team underneath
+// Department columns
 const dr=document.getElementById('dept-row');dr.innerHTML='';
 const execOrder=['steve','tesla','tony','warren'];
 for(const n of execOrder){
   const ex=d.executives[n];if(!ex)continue;
   const subs=ex.team_details||{};
   const subCount=Object.keys(subs).length;
-
-  // Build sub-agent rows
   let rows='';
   for(const[an,ai]of Object.entries(subs)){
     const sa=d.sub_agents[an]||{};
@@ -197,7 +228,6 @@ for(const n of execOrder){
       <span class="agent-badge ${configured?'active':'pending'}">${configured?'✅ Active':'⚠️ Pending'}</span>
     </div>`;
   }
-
   dr.innerHTML+=`<div class="dept-col">
     <div class="org-vline"></div>
     <div class="card card-exec" style="border-color:${ex.color}">
@@ -222,7 +252,9 @@ for(const n of execOrder){
 // Tasks
 const tl=document.getElementById('tl');
 if(!d.tasks.length){tl.innerHTML='<div class="empty">No tasks assigned yet.</div>'}else{
-tl.innerHTML=d.tasks.map(t=>`<div class="ti"><div class="tbar ${t.priority||'MEDIUM'}"></div><div class="tc2"><div class="tnm">${t.name||t.id}</div><div class="tm"><span class="tbg tbg-${t.state}">${t.state}</span>${t.from?`<span>From: <b>${t.from}</b></span>`:''}${t.to?`<span>→ <b>${t.to}</b></span>`:''}${t.deadline&&t.deadline!=='none'?`<span>📅 ${t.deadline}</span>`:''}</div>${t.description?`<div class="tds">${t.description}</div>`:''}</div></div>`).join('')}
+tl.innerHTML=d.tasks.map(t=>{
+  const projTag=(t.project&&t.project!=='default')?`<span class="tproj">📁 ${t.project}</span>`:'';
+  return `<div class="ti"><div class="tbar ${t.priority||'MEDIUM'}"></div><div class="tc2"><div class="tnm">${t.name||t.title||t.id}</div><div class="tm"><span class="tbg tbg-${t.state}">${t.state}</span>${projTag}${t.from?`<span>From: <b>${t.from}</b></span>`:''}${t.to||t.assigned_to?`<span>→ <b>${t.to||t.assigned_to}</b></span>`:''}${t.deadline&&t.deadline!=='none'?`<span>📅 ${t.deadline}</span>`:''}</div>${t.description?`<div class="tds">${t.description}</div>`:''}</div></div>`}).join('')}
 
 // Comms
 const mf=document.getElementById('mf');
@@ -244,7 +276,7 @@ document.getElementById('sg').innerHTML=`
 <div class="hc"><h3>🔒 File Integrity</h3><div class="hv" style="color:var(--green)">Verified</div><div class="hs">SHA-256 baseline · 10 critical files</div></div>`;
 
 }catch(e){console.error(e)}}
-load();setInterval(load,10000);
+load();setInterval(load,10000);setInterval(loadProjects,30000);
 </script>
 </body>
 </html>
